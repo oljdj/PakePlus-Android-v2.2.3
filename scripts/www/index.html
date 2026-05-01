@@ -1,11 +1,3569 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>视功能分析工具 - Oculus</title>
+  <style>
+    :root {
+      --primary: #1A73E8;
+      --primary-light: #E8F0FE;
+      --success: #34A853;
+      --warning: #FBBC04;
+      --danger: #EA4335;
+      --info: #4285F4;
+      --text-primary: #202124;
+      --text-secondary: #5F6368;
+      --text-hint: #9AA0A6;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-xs: 12px;
+      --font-sm: 14px;
+      --font-md: 16px;
+      --font-lg: 18px;
+      --font-xl: 20px;
+      --font-xxl: 24px;
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #F8F9FA;
+      color: var(--text-primary);
+      font-size: var(--font-md);
+      line-height: 1.6;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    input, textarea, select {
+      font-size: 16px;
+    }
+
+    button, [role="button"], a, input[type="button"], input[type="submit"] {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--primary);
+      color: #fff;
+      padding: var(--spacing-md) var(--spacing-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-left {
+      position: absolute;
+      left: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      min-width: 0;
+    }
+
+    .step-indicator {
+      font-weight: 700;
+      font-size: var(--font-xxl);
+      text-align: center;
+    }
+
+    .header-back {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .header-back svg {
+      display: block;
+    }
+
+    .header-back.show {
+      display: flex;
+    }
+
+    header .app-name {
+      font-size: var(--font-lg);
+      font-weight: 600;
+    }
+
+    header .step-indicator {
+      font-size: var(--font-sm);
+      opacity: 0.85;
+    }
+
+    main {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: calc(100vh - 120px);
+    }
+
+    section {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      padding: var(--spacing-md);
+    }
+
+    section.active {
+      display: block;
+      opacity: 1;
+    }
+
+    footer {
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+      background: #fff;
+      border-top: 1px solid #E0E0E0;
+      padding: var(--spacing-sm) var(--spacing-md);
+      padding-bottom: calc(var(--spacing-sm) + var(--safe-bottom));
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-md);
+    }
+
+    footer button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-md);
+      cursor: pointer;
+    }
+
+    @media (min-width: 481px) {
+      body {
+        background-color: #E8EAED;
+      }
+      main {
+        background-color: #F8F9FA;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .form-group label {
+      font-size: var(--font-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input,
+    .input-wrapper select {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #DADCE0;
+      border-radius: var(--radius-md);
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrapper input:focus,
+    .input-wrapper select:focus {
+      border-color: var(--primary);
+    }
+
+    .input-wrapper .unit {
+      position: absolute;
+      right: 12px;
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+      pointer-events: none;
+    }
+
+    .input-wrapper input.has-unit {
+      padding-right: 40px;
+    }
+
+    .status-badge {
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: none;
+    }
+
+    .status-badge.show { display: block; }
+    .status-badge.normal { background: var(--success); }
+    .status-badge.low { background: var(--warning); }
+    .status-badge.high { background: var(--warning); }
+    .status-badge.critical { background: var(--danger); }
+    .status-badge.attention { background: var(--info); }
+
+    .tab-bar {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      border-bottom: 1px solid #DADCE0;
+      background: #fff;
+    }
+
+    .tab-bar::-webkit-scrollbar { display: none; }
+
+    .tab-bar .tab-item {
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-sm);
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      min-height: 44px;
+      min-width: auto;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab-bar .tab-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .abnormal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--font-xs);
+      line-height: 1;
+    }
+
+    .abnormal-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .badge-normal .dot { background: var(--success); }
+    .badge-low .dot { background: var(--warning); }
+    .badge-high .dot { background: var(--warning); }
+    .badge-critical .dot { background: var(--danger); }
+    .badge-attention .dot { background: var(--info); }
+
+    .badge-normal { color: var(--success); }
+    .badge-low { color: var(--warning); }
+    .badge-high { color: var(--warning); }
+    .badge-critical { color: var(--danger); }
+    .badge-attention { color: var(--info); }
+
+    .collapsible {
+      border: 1px solid #DADCE0;
+      border-radius: var(--radius-md);
+      margin-bottom: var(--spacing-sm);
+      overflow: hidden;
+    }
+
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm) var(--spacing-md);
+      cursor: pointer;
+      background: #fff;
+      font-weight: 600;
+      font-size: var(--font-md);
+      min-height: 44px;
+      user-select: none;
+    }
+
+    .collapsible-header .arrow {
+      font-size: var(--font-xs);
+      transition: transform 0.3s;
+    }
+
+    .collapsible.open .collapsible-header .arrow {
+      transform: rotate(90deg);
+    }
+
+    .collapsible-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 var(--spacing-md);
+    }
+
+    .collapsible.open .collapsible-body {
+      max-height: 2000px;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .stepper {
+      display: flex;
+      align-items: flex-start;
+      overflow-x: auto;
+      padding: var(--spacing-md) 0;
+    }
+
+    .stepper::-webkit-scrollbar { display: none; }
+
+    .stepper-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 60px;
+    }
+
+    .stepper-step .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #DADCE0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+      background: #fff;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .stepper-step.completed .step-circle {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .stepper-step.current .step-circle {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .stepper-step .step-label {
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+      text-align: center;
+    }
+
+    .stepper-step.current .step-label,
+    .stepper-step.completed .step-label {
+      color: var(--text-primary);
+    }
+
+    .toast-container {
+      position: fixed;
+      top: var(--safe-top);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      width: 100%;
+      max-width: 480px;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-md);
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      font-size: var(--font-sm);
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s, transform 0.3s;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.toast-success .toast-icon { color: var(--success); }
+    .toast.toast-warning .toast-icon { color: var(--warning); }
+    .toast.toast-error .toast-icon { color: var(--danger); }
+    .toast.toast-info .toast-icon { color: var(--info); }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: #fff;
+      border-top: 1px solid #E0E0E0;
+      padding: var(--spacing-sm) var(--spacing-md);
+      padding-bottom: calc(var(--spacing-sm) + var(--safe-bottom));
+      display: flex;
+      gap: var(--spacing-sm);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .btn-primary {
+      flex: 1;
+      height: 44px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-md);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      height: 44px;
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-lg);
+      font-size: var(--font-md);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 var(--spacing-lg);
+    }
+
+    .tab-content {
+      display: none;
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: var(--spacing-md) 0;
+    }
+
+    .tab-content.active { display: block; }
+
+    .fusion-range-group {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: flex-end;
+    }
+
+    .fusion-range-group .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .fusion-range-group .form-group label {
+      font-size: var(--font-xs);
+      font-weight: 400;
+    }
+
+    .formula-hint {
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+      background: var(--primary-light);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--spacing-sm);
+      line-height: 1.5;
+    }
+
+    .amp-hint {
+      font-size: var(--font-xs);
+      color: var(--info);
+      margin-top: var(--spacing-xs);
+    }
+
+    .card-section {
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .card-section h3 {
+      font-size: var(--font-md);
+      font-weight: 600;
+      margin-bottom: var(--spacing-sm);
+      color: var(--primary);
+    }
+
+    .auto-calc-btn {
+      height: 32px;
+      font-size: var(--font-xs);
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 0 var(--spacing-sm);
+      cursor: pointer;
+      margin-top: var(--spacing-xs);
+    }
+
+    .analysis-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid #F1F3F4;
+    }
+
+    .analysis-item:last-child { border-bottom: none; }
+
+    .analysis-item .item-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .analysis-item .item-label {
+      font-size: var(--font-sm);
+      font-weight: 500;
+    }
+
+    .analysis-item .item-detail {
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+    }
+
+    .analysis-item .item-value {
+      font-size: var(--font-sm);
+      font-weight: 600;
+      margin-right: var(--spacing-sm);
+    }
+
+    .basic-info-row {
+      display: flex;
+      gap: var(--spacing-lg);
+      font-size: var(--font-sm);
+      color: var(--text-secondary);
+    }
+
+    .confirm-panel {
+      background: var(--primary-light);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin: var(--spacing-sm) 0;
+    }
+
+    .confirm-panel p {
+      font-size: var(--font-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .confirm-panel .confirm-btns {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .diagnosis-result {
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid #F1F3F4;
+    }
+
+    .diagnosis-result:last-child { border-bottom: none; }
+
+    .diagnosis-result .result-title {
+      font-weight: 600;
+      font-size: var(--font-md);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .diagnosis-result .result-positive { color: var(--danger); }
+    .diagnosis-result .result-negative { color: var(--success); }
+    .diagnosis-result .result-pending { color: var(--warning); }
+
+    .diagnosis-result .condition-list {
+      font-size: var(--font-xs);
+      color: var(--text-secondary);
+      padding-left: var(--spacing-md);
+    }
+
+    .diagnosis-result .condition-list li {
+      margin-bottom: 2px;
+    }
+
+    .diagnosis-result .condition-met { color: var(--success); font-weight: 600; }
+    .diagnosis-result .condition-unmet { color: var(--text-hint); }
+
+    .necessary-condition {
+      border-left: 3px solid var(--danger);
+      background: #FFF5F5;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 2px;
+    }
+
+    .sufficient-condition {
+      border-left: 3px solid var(--info);
+      background: #F0F4FF;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 2px;
+    }
+
+    .binocular-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid #F1F3F4;
+    }
+
+    .binocular-item:last-child { border-bottom: none; }
+
+    .binocular-item .bio-label {
+      font-size: var(--font-sm);
+      font-weight: 500;
+    }
+
+    .binocular-item .bio-desc {
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+    }
+
+    .binocular-abnormal { color: var(--danger); font-weight: 600; }
+    .binocular-critical { color: var(--danger); font-weight: 600; }
+
+    @media print {
+      header, footer, .bottom-bar, .toast-container { display: none !important; }
+      main { max-width: 100% !important; }
+      section { display: block !important; opacity: 1 !important; }
+      #page-home, #page-input, #page-analysis, #page-diagnosis, #page-history { display: none !important; }
+      #page-report { display: block !important; }
+      .card-section { break-inside: avoid; box-shadow: none; }
+    }
+
+    .training-timeline {
+      position: relative;
+      padding-left: 24px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .training-timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--primary);
+    }
+
+    .training-phase {
+      position: relative;
+      margin-bottom: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: #fff;
+      border-radius: var(--radius-md);
+    }
+
+    .training-phase::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid #fff;
+    }
+
+    .training-phase .phase-title {
+      font-weight: 600;
+      font-size: var(--font-sm);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .training-phase .phase-goal {
+      font-size: var(--font-xs);
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .training-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+
+    .training-tools .tool-tag {
+      display: inline-block;
+      font-size: var(--font-xs);
+      background: #F1F3F4;
+      color: var(--text-secondary);
+      padding: 2px var(--spacing-sm);
+      border-radius: 12px;
+    }
+
+    .training-endpoint {
+      border: 1px solid var(--success);
+      background: #E6F4EA;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-sm);
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .training-principles {
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+    }
+
+    .training-principles li {
+      font-size: var(--font-xs);
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xs);
+      list-style: decimal;
+      margin-left: var(--spacing-md);
+    }
+
+    .training-core {
+      font-size: var(--font-sm);
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: var(--primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      transition: opacity 0.3s;
+    }
+
+    .splash-screen.hide { opacity: 0; pointer-events: none; }
+
+    .splash-screen .splash-title {
+      font-size: var(--font-xxl);
+      font-weight: 700;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .splash-screen .splash-sub {
+      font-size: var(--font-sm);
+      opacity: 0.8;
+    }
+
+    .home-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+    }
+
+    .home-actions button {
+      width: 100%;
+      height: 56px;
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-lg);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .home-btn-new { background: var(--primary); color: #fff; }
+    .home-btn-history { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: #fff;
+      border-radius: var(--radius-md);
+      margin-bottom: var(--spacing-sm);
+      cursor: pointer;
+    }
+
+    .history-item .hi-date { font-size: var(--font-sm); font-weight: 500; }
+    .history-item .hi-summary { font-size: var(--font-xs); color: var(--text-hint); }
+
+    .history-item .hi-delete {
+      font-size: var(--font-xs);
+      color: var(--danger);
+      background: none;
+      border: none;
+      cursor: pointer;
+      min-width: auto;
+      min-height: auto;
+      padding: 4px 8px;
+    }
+
+    .recent-card {
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+
+    .recent-card .rc-title { font-size: var(--font-sm); font-weight: 600; color: var(--primary); margin-bottom: var(--spacing-xs); }
+    .recent-card .rc-detail { font-size: var(--font-xs); color: var(--text-secondary); }
+
+    .term-tip {
+      border-bottom: 1px dashed var(--text-hint);
+      cursor: help;
+      position: relative;
+    }
+
+    .term-tooltip {
+      position: fixed;
+      z-index: 9999;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      font-size: var(--font-xs);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-md);
+      max-width: 280px;
+      line-height: 1.5;
+      pointer-events: none;
+    }
+
+    .disclaimer {
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+      text-align: center;
+      padding: var(--spacing-md) 0;
+      border-top: 1px solid #E0E0E0;
+      margin-top: var(--spacing-lg);
+    }
+
+    .picker-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .picker-overlay.show { display: flex; }
+
+    .picker-panel {
+      background: #fff;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      width: 100%;
+      max-width: 480px;
+      padding: 0;
+    }
+
+    .picker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid #E0E0E0;
+    }
+
+    .picker-header .picker-title {
+      font-size: var(--font-md);
+      font-weight: 600;
+    }
+
+    .picker-header button {
+      font-size: var(--font-sm);
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      min-width: auto;
+      min-height: auto;
+      padding: 4px 8px;
+    }
+
+    .picker-body {
+      height: 220px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .picker-highlight {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 44px;
+      transform: translateY(-50%);
+      border-top: 2px solid var(--primary);
+      border-bottom: 2px solid var(--primary);
+      background: var(--primary-light);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .picker-list {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+    }
+
+    .picker-item {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-lg);
+      color: var(--text-secondary);
+      user-select: none;
+      position: relative;
+      z-index: 2;
+    }
+
+    .picker-unit-label {
+      text-align: center;
+      font-size: var(--font-xs);
+      color: var(--text-hint);
+      padding-bottom: var(--spacing-sm);
+    }
+
+    .picker-display-text {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      font-size: var(--font-md);
+      color: var(--text-primary);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .has-unit ~ .picker-display-text {
+      right: 40px;
+    }
+
+    .input-wrapper input.picker-input {
+      color: transparent !important;
+      caret-color: transparent;
+    }
+
+    .input-wrapper input.picker-input:focus {
+      border-color: var(--primary);
+    }
+
+    .input-wrapper input.picker-input.has-unit {
+      padding-right: 40px;
+    }
+
+    .option-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+
+    .option-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      padding: 0 var(--spacing-md);
+      border: 1px solid #DADCE0;
+      border-radius: var(--radius-md);
+      background: #fff;
+      font-size: var(--font-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .option-btn:active {
+      transform: scale(0.96);
+    }
+
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .worth-hint {
+      font-size: var(--font-xs);
+      margin-top: 4px;
+    }
+    .worth-hint.normal { color: var(--success); }
+    .worth-hint.abnormal { color: var(--danger); }
+
+    .range-hint {
+      font-size: var(--font-xs);
+      font-weight: 400;
+      color: var(--text-hint);
+      margin-left: var(--spacing-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-screen" id="splash">
+    <div class="splash-title">Oculus</div>
+    <div class="splash-sub">视功能分析工具</div>
+  </div>
+
+  <header>
+    <div class="header-left" id="header-left">
+      <div class="header-back" id="header-back" onclick="goBack()">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 36L19 24L31 12" stroke="#f6f6f6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <span class="step-indicator" id="step-indicator">视功能分析</span>
+  </header>
+
+  <main id="app">
+    <section id="page-home" class="active">
+      <h2 style="text-align:center;letter-spacing:8px;font-size:36px">Oculus</h2>
+      <p style="font-size:var(--font-sm);color:var(--text-secondary);margin-top:var(--spacing-xs);text-align:center;font-weight:600">视功能分析工具</p>
+      <div class="home-actions">
+        <button class="home-btn-new" id="btn-new-exam">新建检查</button>
+        <button class="home-btn-history" id="btn-view-history">历史记录</button>
+      </div>
+      <div id="recent-exam-card"></div>
+    </section>
+    <section id="page-input">
+      <div class="card-section">
+        <h3>基础信息</h3>
+        <div class="form-group">
+          <label>年龄 *</label>
+          <div class="input-wrapper">
+            <input type="number" id="inp-age" min="3" max="80" step="1" data-bind="basic.age">
+            <span class="unit">岁</span>
+          </div>
+          <div class="amp-hint" id="amp-hint"></div>
+        </div>
+        <div class="form-group">
+          <label>瞳距 PD</label>
+          <div class="input-wrapper">
+            <input type="number" id="inp-pd" min="4" max="8" step="0.1" class="has-unit" data-bind="basic.pd">
+            <span class="unit">cm</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>检查距离</label>
+          <div class="input-wrapper">
+            <input type="number" id="inp-nearDist" min="0.25" max="0.5" step="0.05" value="0.4" class="has-unit" data-bind="basic.nearDistance">
+            <span class="unit">m</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="input-tab-bar"></div>
+
+      <div class="tab-content active" id="tab-accommodation">
+        <div class="card-section">
+          <h3>调节幅度与反应</h3>
+          <div class="form-group">
+            <label>NRA（+）<span class="range-hint">+2.00~+2.50D</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.25" class="has-unit" data-bind="accommodation.nra" data-force-sign="positive">
+              <span class="unit">D</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>PRA（-）<span class="range-hint">≥-2.50D</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.25" class="has-unit" data-bind="accommodation.pra" data-force-sign="negative">
+              <span class="unit">D</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>BCC（±）<span class="range-hint">+0.25~+0.75D</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.25" class="has-unit" data-bind="accommodation.bcc" data-force-sign="signed">
+              <span class="unit">D</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>调节幅度 AMP</h3>
+          <div class="form-group">
+            <label>右眼 AMP<span class="range-hint">≥期望值(15-0.25×年龄)</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.25" class="has-unit" data-bind="accommodation.ampRight">
+              <span class="unit">D</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>左眼 AMP<span class="range-hint">≥期望值(15-0.25×年龄)</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.25" class="has-unit" data-bind="accommodation.ampLeft">
+              <span class="unit">D</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>调节灵敏度</h3>
+          <div class="form-group">
+            <label>右眼灵敏度<span class="range-hint">≥12cpm</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="1" class="has-unit" data-bind="accommodation.sensitivityRight">
+              <span class="unit">cpm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>左眼灵敏度<span class="range-hint">≥12cpm</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="1" class="has-unit" data-bind="accommodation.sensitivityLeft">
+              <span class="unit">cpm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>双眼灵敏度<span class="range-hint">≥8cpm</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="1" class="has-unit" data-bind="accommodation.sensitivityBinocular">
+              <span class="unit">cpm</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>翻转拍通过困难</h3>
+          <div class="form-group">
+            <label>右眼</label>
+            <div class="option-group" data-option-bind="accommodation.flipperRightType">
+              <div class="option-btn selected" data-value="none">无</div>
+              <div class="option-btn" data-value="negative">负片困难</div>
+              <div class="option-btn" data-value="positive">正片困难</div>
+              <div class="option-btn" data-value="both">双向困难</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>左眼</label>
+            <div class="option-group" data-option-bind="accommodation.flipperLeftType">
+              <div class="option-btn selected" data-value="none">无</div>
+              <div class="option-btn" data-value="negative">负片困难</div>
+              <div class="option-btn" data-value="positive">正片困难</div>
+              <div class="option-btn" data-value="both">双向困难</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>双眼</label>
+            <div class="option-group" data-option-bind="accommodation.flipperBinocularType">
+              <div class="option-btn selected" data-value="none">无</div>
+              <div class="option-btn" data-value="negative">负片困难</div>
+              <div class="option-btn" data-value="positive">正片困难</div>
+              <div class="option-btn" data-value="both">双向困难</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-convergence">
+        <div class="card-section">
+          <h3>隐斜视</h3>
+          <div class="form-group">
+            <label>远距离眼位（+内/-外）<span class="range-hint">-3~+1△</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="1" class="has-unit" data-bind="convergence.farPhoria" data-force-sign="signed">
+              <span class="unit">&#9651;</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>近距离眼位（+内/-外）<span class="range-hint">-6~0△</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="1" class="has-unit" data-bind="convergence.nearPhoria" data-force-sign="signed">
+              <span class="unit">&#9651;</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>AC/A 比率</h3>
+          <div class="form-group">
+            <label>测试方法</label>
+            <div class="input-wrapper">
+              <select id="sel-acMethod" data-bind="convergence.acMethod">
+                <option value="calculated">计算法</option>
+                <option value="gradient">梯度法</option>
+              </select>
+            </div>
+          </div>
+          <div id="ac-calculated-hint" class="formula-hint">计算法：AC/A = PD + M &times; (近眼位 - 远眼位)，M=1/检查距离(m)</div>
+          <div id="ac-gradient-hint" class="formula-hint" style="display:none">梯度法：AC/A = (初始隐斜量 - 最终隐斜量) / 附加度数</div>
+          <div class="form-group">
+            <label>AC/A 值<span class="range-hint">计算法5~7 / 梯度法3~5△/D</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.1" id="inp-acValue" class="has-unit" data-bind="convergence.acValue">
+              <span class="unit">&#9651;/D</span>
+            </div>
+          </div>
+          <div id="ac-calc-area">
+            <button type="button" class="auto-calc-btn" id="btn-calc-aca">自动计算 AC/A</button>
+          </div>
+          <div id="gradient-inputs" style="display:none">
+            <div class="form-group">
+              <label>初始隐斜量</label>
+              <div class="input-wrapper">
+                <input type="number" step="1" id="inp-gradient-initial" class="has-unit">
+                <span class="unit">&#9651;</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>最终隐斜量</label>
+              <div class="input-wrapper">
+                <input type="number" step="1" id="inp-gradient-final" class="has-unit">
+                <span class="unit">&#9651;</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>附加度数</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.25" id="inp-gradient-add" class="has-unit">
+                <span class="unit">D</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>NPC 集合近点</h3>
+          <div class="form-group">
+            <label>NPC<span class="range-hint">5~7cm</span></label>
+            <div class="input-wrapper">
+              <input type="number" step="0.5" class="has-unit" data-bind="convergence.npc">
+              <span class="unit">cm</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>远距离融像范围</h3>
+          <div class="form-group">
+            <label>BI（模糊/破裂/恢复）<span class="range-hint">X/4~10/2~6△</span></label>
+            <div class="fusion-range-group">
+              <div class="form-group"><label>模糊</label><div class="input-wrapper"><input type="text" data-bind="convergence.farBI.blur" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>破裂</label><div class="input-wrapper"><input type="text" data-bind="convergence.farBI.break" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>恢复</label><div class="input-wrapper"><input type="text" data-bind="convergence.farBI.recovery" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>BO（模糊/破裂/恢复）<span class="range-hint">5~13/11~27/6~14△</span></label>
+            <div class="fusion-range-group">
+              <div class="form-group"><label>模糊</label><div class="input-wrapper"><input type="text" data-bind="convergence.farBO.blur" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>破裂</label><div class="input-wrapper"><input type="text" data-bind="convergence.farBO.break" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>恢复</label><div class="input-wrapper"><input type="text" data-bind="convergence.farBO.recovery" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>近距离融像范围</h3>
+          <div class="form-group">
+            <label>BI（模糊/破裂/恢复）<span class="range-hint">9~17/17~25/8~18△</span></label>
+            <div class="fusion-range-group">
+              <div class="form-group"><label>模糊</label><div class="input-wrapper"><input type="text" data-bind="convergence.nearBI.blur" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>破裂</label><div class="input-wrapper"><input type="text" data-bind="convergence.nearBI.break" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>恢复</label><div class="input-wrapper"><input type="text" data-bind="convergence.nearBI.recovery" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>BO（模糊/破裂/恢复）<span class="range-hint">12~22/15~27/4~18△</span></label>
+            <div class="fusion-range-group">
+              <div class="form-group"><label>模糊</label><div class="input-wrapper"><input type="text" data-bind="convergence.nearBO.blur" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>破裂</label><div class="input-wrapper"><input type="text" data-bind="convergence.nearBO.break" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+              <div class="form-group"><label>恢复</label><div class="input-wrapper"><input type="text" data-bind="convergence.nearBO.recovery" data-fusion="true"><span class="unit">&#9651;</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-binocular">
+        <div class="card-section">
+          <h3>三级视功能</h3>
+          <div class="form-group">
+            <label>Worth-4 点</label>
+            <div class="option-group" data-option-bind="binocular.worthFourDot">
+              <div class="option-btn selected" data-value="4">4点</div>
+              <div class="option-btn" data-value="3">3点</div>
+              <div class="option-btn" data-value="2">2点</div>
+              <div class="option-btn" data-value="5">5点</div>
+            </div>
+            <div class="worth-hint" id="worth-hint">正常双眼单视</div>
+          </div>
+          <div class="form-group">
+            <label>立体视</label>
+            <div class="input-wrapper">
+              <input type="number" step="1" class="has-unit" data-bind="binocular.stereoAcuity">
+              <span class="unit">&Prime;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-bar" id="input-bottom-bar">
+        <button type="button" class="btn-primary" id="btn-go-analysis">下一步：异常分析</button>
+      </div>
+    </section>
+    <section id="page-analysis">
+      <div class="card-section">
+        <h3>基础信息</h3>
+        <div id="analysis-basic-info"></div>
+      </div>
+      <div class="card-section">
+        <h3>调节功能</h3>
+        <div id="analysis-accommodation"></div>
+      </div>
+      <div class="card-section">
+        <h3>集合功能</h3>
+        <div id="analysis-convergence"></div>
+      </div>
+      <div class="card-section">
+        <h3>三级视功能</h3>
+        <div id="analysis-binocular"></div>
+      </div>
+      <div class="bottom-bar">
+        <button type="button" class="btn-primary" id="btn-go-diagnosis">下一步：诊断推理</button>
+      </div>
+    </section>
+    <section id="page-diagnosis">
+      <div class="card-section">
+        <h3>调节功能诊断</h3>
+        <div id="diagnosis-accommodation"></div>
+      </div>
+      <div class="card-section">
+        <h3>集合功能诊断</h3>
+        <div id="diagnosis-convergence"><div style="font-size:var(--font-sm);color:var(--text-hint)">待后续子任务实现</div></div>
+      </div>
+      <div class="card-section">
+        <h3>三级视功能诊断</h3>
+        <div id="diagnosis-binocular"><div style="font-size:var(--font-sm);color:var(--text-hint)">待后续子任务实现</div></div>
+      </div>
+      <div class="bottom-bar">
+        <button type="button" class="btn-secondary" id="btn-back-analysis2">返回分析</button>
+        <button type="button" class="btn-primary" id="btn-go-report">下一步：综合报告</button>
+      </div>
+    </section>
+    <section id="page-report">
+      <div id="report-content"></div>
+      <div class="bottom-bar">
+        <button type="button" class="btn-secondary" id="btn-report-home">返回首页</button>
+        <button type="button" class="btn-primary" id="btn-report-print">打印/导出报告</button>
+      </div>
+    </section>
+    <section id="page-history">
+      <h2>历史记录</h2>
+      <div id="history-list"></div>
+      <div class="bottom-bar">
+        <button type="button" class="btn-primary" id="btn-history-back">返回首页</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="picker-overlay" id="picker-overlay">
+    <div class="picker-panel">
+      <div class="picker-header">
+        <button id="picker-cancel">取消</button>
+        <span class="picker-title" id="picker-title">选择</span>
+        <button id="picker-confirm">确定</button>
+      </div>
+      <div class="picker-body" id="picker-body">
+        <div class="picker-highlight"></div>
+        <div class="picker-list" id="picker-list"></div>
+      </div>
+      <div class="picker-unit-label" id="picker-unit-label"></div>
+    </div>
+  </div>
+
+  <script>
+    const STEP_MAP = {
+      'page-home': '视功能分析',
+      'page-input': '检查数据录入',
+      'page-analysis': '异常项分析',
+      'page-diagnosis': '异常诊断',
+      'page-report': '综合报告',
+      'page-history': '历史记录'
+    };
+
+    var PAGE_NAV_STACK = [];
+    var PAGE_BACK_MAP = {
+      'page-input': 'page-home',
+      'page-analysis': 'page-input',
+      'page-diagnosis': 'page-analysis',
+      'page-report': 'page-diagnosis',
+      'page-history': 'page-home'
+    };
+
+    function goBack() {
+      if (PAGE_NAV_STACK.length > 1) {
+        PAGE_NAV_STACK.pop();
+        var prev = PAGE_NAV_STACK[PAGE_NAV_STACK.length - 1];
+        showPage(prev, true);
+      } else {
+        var back = PAGE_BACK_MAP[currentPageId] || 'page-home';
+        showPage(back, true);
+      }
+    }
+
+    var currentPageId = 'page-home';
+
+    function showPage(pageId, isBack) {
+      currentPageId = pageId;
+      if (!isBack) {
+        PAGE_NAV_STACK.push(pageId);
+      }
+      const sections = document.querySelectorAll('main section');
+      sections.forEach(function(s) {
+        s.classList.remove('active');
+      });
+      const target = document.getElementById(pageId);
+      if (target) {
+        requestAnimationFrame(function() {
+          target.classList.add('active');
+        });
+      }
+      var indicator = document.getElementById('step-indicator');
+      if (indicator) {
+        indicator.textContent = STEP_MAP[pageId] || '';
+      }
+      var backBtn = document.getElementById('header-back');
+      if (pageId === 'page-home') {
+        if (backBtn) backBtn.classList.remove('show');
+      } else {
+        if (backBtn) backBtn.classList.add('show');
+      }
+    }
+
+    showPage('page-home');
+
+    function initTabBar(container, tabs, onChange) {
+      var el = typeof container === 'string' ? document.querySelector(container) : container;
+      if (!el) return;
+      el.innerHTML = '';
+      el.className = 'tab-bar';
+      tabs.forEach(function(tab, i) {
+        var btn = document.createElement('button');
+        btn.className = 'tab-item' + (i === 0 ? ' active' : '');
+        btn.textContent = tab.label;
+        btn.setAttribute('data-tab-id', tab.id);
+        btn.addEventListener('click', function() {
+          el.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+          btn.classList.add('active');
+          if (typeof onChange === 'function') onChange(tab.id);
+        });
+        el.appendChild(btn);
+      });
+    }
+
+    function toggleCollapsible(el) {
+      var target = typeof el === 'string' ? document.querySelector(el) : el;
+      if (target) target.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      var header = e.target.closest('.collapsible-header');
+      if (header) {
+        var collapsible = header.closest('.collapsible');
+        if (collapsible) toggleCollapsible(collapsible);
+      }
+    });
+
+    var TOAST_ICONS = {
+      success: '\u2713',
+      warning: '\u26A0',
+      error: '\u2717',
+      info: '\u2139'
+    };
+
+    function showToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toast-container');
+      if (!container) return;
+      var toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.innerHTML = '<span class="toast-icon">' + (TOAST_ICONS[type] || '') + '</span><span>' + message + '</span>';
+      container.appendChild(toast);
+      requestAnimationFrame(function() {
+        toast.classList.add('show');
+      });
+      setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+      }, 2000);
+    }
+
+    function formatValue(val, unit) {
+      if (val === null || val === undefined || val === '') return '--';
+      var num = Number(val);
+      if (isNaN(num)) return val;
+      var formatted = Number.isInteger(num) ? num.toString() : num.toFixed(2);
+      return unit ? formatted + ' ' + unit : formatted;
+    }
+
+    function formatSignedDiopter(val) {
+      if (val === null || val === undefined || val === '') return '--';
+      var num = Number(val);
+      if (isNaN(num)) return String(val);
+      var fixed = Math.abs(num).toFixed(2);
+      if (num > 0) return '+' + fixed;
+      if (num < 0) return '-' + fixed;
+      return fixed;
+    }
+
+    var SIGNED_KEYS = { nra: 1, pra: 1, bcc: 1, ampRight: 1, ampLeft: 1 };
+
+    function parseFusionRange(str) {
+      if (!str) return { blur: null, break: null, recovery: null };
+      var parts = String(str).split('/');
+      function parsePart(p) {
+        if (p === undefined) return null;
+        var trimmed = p.trim().toUpperCase();
+        if (trimmed === 'X') return 'X';
+        var num = Number(p);
+        return isNaN(num) ? null : num;
+      }
+      return {
+        blur: parsePart(parts[0]),
+        break: parsePart(parts[1]),
+        recovery: parsePart(parts[2])
+      };
+    }
+
+    function clamp(val, min, max) {
+      var num = Number(val);
+      if (isNaN(num)) return val;
+      if (min !== undefined && min !== null) num = Math.max(num, min);
+      if (max !== undefined && max !== null) num = Math.min(num, max);
+      return num;
+    }
+
+    var gExamData = {
+      basic: { age: null, pd: null, nearDistance: 0.4 },
+      accommodation: {
+        nra: null, pra: null, bcc: null,
+        ampRight: null, ampLeft: null,
+        sensitivityRight: null, sensitivityLeft: null, sensitivityBinocular: null,
+        flipperRightType: 'none', flipperLeftType: 'none', flipperBinocularType: 'none'
+      },
+      convergence: {
+        farPhoria: null, nearPhoria: null,
+        acMethod: 'calculated', acValue: null,
+        npc: null,
+        farBI: { blur: null, break: null, recovery: null },
+        farBO: { blur: null, break: null, recovery: null },
+        nearBI: { blur: null, break: null, recovery: null },
+        nearBO: { blur: null, break: null, recovery: null }
+      },
+      binocular: {
+        worthFourDot: '4', stereoAcuity: null
+      }
+    };
+
+    function setNestedValue(obj, path, value) {
+      var parts = path.split('.');
+      var current = obj;
+      for (var i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) current[parts[i]] = {};
+        current = current[parts[i]];
+      }
+      current[parts[parts.length - 1]] = value;
+    }
+
+    function getNestedValue(obj, path) {
+      var parts = path.split('.');
+      var current = obj;
+      for (var i = 0; i < parts.length; i++) {
+        if (current == null) return null;
+        current = current[parts[i]];
+      }
+      return current;
+    }
+
+    function parseFusionValue(val) {
+      if (val === '') return null;
+      var upper = val.toUpperCase().trim();
+      if (upper === 'X') return 'X';
+      var num = Number(val);
+      return isNaN(num) ? null : num;
+    }
+
+    function initInputBindings() {
+      var inputs = document.querySelectorAll('#page-input [data-bind]');
+      inputs.forEach(function(el) {
+        var path = el.getAttribute('data-bind');
+        var isFusion = el.hasAttribute('data-fusion');
+        var existing = getNestedValue(gExamData, path);
+        if (existing !== null && existing !== undefined) {
+          el.value = existing;
+        }
+        el.addEventListener('input', function() {
+          var val = el.value;
+          if (el.tagName === 'SELECT') {
+            setNestedValue(gExamData, path, val);
+          } else if (isFusion) {
+            setNestedValue(gExamData, path, parseFusionValue(val));
+          } else {
+            setNestedValue(gExamData, path, val === '' ? null : Number(val));
+          }
+          if (path === 'basic.age') updateAmpHint();
+        });
+        el.addEventListener('change', function() {
+          var val = el.value;
+          if (el.tagName === 'SELECT') {
+            setNestedValue(gExamData, path, val);
+          } else if (isFusion) {
+            var parsed = parseFusionValue(val);
+            setNestedValue(gExamData, path, parsed);
+            el.value = parsed === null ? '' : parsed;
+          } else {
+            setNestedValue(gExamData, path, val === '' ? null : Number(val));
+          }
+          if (path === 'basic.age') updateAmpHint();
+          if (path === 'convergence.acMethod') updateAcMethodUI();
+        });
+      });
+    }
+
+    function updateAmpHint() {
+      var age = gExamData.basic.age;
+      var hint = document.getElementById('amp-hint');
+      if (!hint) return;
+      if (age !== null && age > 0) {
+        var expected = 15 - 0.25 * age;
+        hint.textContent = 'AMP 期望值（Hofstetter）：' + expected.toFixed(2) + ' D';
+      } else {
+        hint.textContent = '';
+      }
+    }
+
+    function updateAcMethodUI() {
+      var method = gExamData.convergence.acMethod;
+      var calcHint = document.getElementById('ac-calculated-hint');
+      var gradHint = document.getElementById('ac-gradient-hint');
+      var gradInputs = document.getElementById('gradient-inputs');
+      if (method === 'calculated') {
+        if (calcHint) calcHint.style.display = '';
+        if (gradHint) gradHint.style.display = 'none';
+        if (gradInputs) gradInputs.style.display = 'none';
+      } else {
+        if (calcHint) calcHint.style.display = 'none';
+        if (gradHint) gradHint.style.display = '';
+        if (gradInputs) gradInputs.style.display = '';
+      }
+    }
+
+    function calcAcA() {
+      var method = gExamData.convergence.acMethod;
+      if (method === 'calculated') {
+        var pd = gExamData.basic.pd;
+        var nearDist = gExamData.basic.nearDistance;
+        var nearPhoria = gExamData.convergence.nearPhoria;
+        var farPhoria = gExamData.convergence.farPhoria;
+        if (pd === null || nearDist === null || nearPhoria === null || farPhoria === null) {
+          showToast('请先填写 PD、检查距离、远/近眼位', 'warning');
+          return;
+        }
+        var M = 1 / nearDist;
+        var aca = pd + M * (nearPhoria - farPhoria);
+        var inp = document.getElementById('inp-acValue');
+        if (inp) inp.value = aca.toFixed(2);
+        gExamData.convergence.acValue = aca;
+        showToast('AC/A 计算结果：' + aca.toFixed(2) + ' △/D', 'success');
+      } else {
+        var initial = Number(document.getElementById('inp-gradient-initial').value);
+        var final = Number(document.getElementById('inp-gradient-final').value);
+        var add = Number(document.getElementById('inp-gradient-add').value);
+        if (isNaN(initial) || isNaN(final) || isNaN(add) || add === 0) {
+          showToast('请填写梯度法所需数据，附加度数不能为0', 'warning');
+          return;
+        }
+        var aca = (initial - final) / add;
+        var inp = document.getElementById('inp-acValue');
+        if (inp) inp.value = aca.toFixed(2);
+        gExamData.convergence.acValue = aca;
+        showToast('AC/A 计算结果：' + aca.toFixed(2) + ' △/D', 'success');
+      }
+    }
+
+    function validateInputPage() {
+      if (gExamData.basic.age === null || gExamData.basic.age === '') {
+        showToast('请填写年龄', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    function initInputPage() {
+      initTabBar('#input-tab-bar', [
+        { id: 'tab-accommodation', label: '调节功能' },
+        { id: 'tab-convergence', label: '集合功能' },
+        { id: 'tab-binocular', label: '三级视功能' }
+      ], function(tabId) {
+        document.querySelectorAll('#page-input .tab-content').forEach(function(tc) {
+          tc.classList.remove('active');
+        });
+        var target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
+      });
+
+      initInputBindings();
+      updateAmpHint();
+
+      var btnCalc = document.getElementById('btn-calc-aca');
+      if (btnCalc) btnCalc.addEventListener('click', calcAcA);
+
+      var btnGo = document.getElementById('btn-go-analysis');
+      if (btnGo) btnGo.addEventListener('click', function() {
+        if (validateInputPage()) {
+          if (typeof runAnalysis === 'function') runAnalysis();
+          showPage('page-analysis');
+        }
+      });
+    }
+
+    initInputPage();
+
+    var NORMAL_VALUES = {
+      nra: { min: 2.00, max: 2.50, unit: 'D' },
+      pra: { min: 2.50, max: null, unit: 'D' },
+      bcc: { min: 0.25, max: 0.75, unit: 'D' },
+      sensitivityMonocular: { min: 12, max: null, unit: 'cpm' },
+      sensitivityBinocular: { min: 8, max: null, unit: 'cpm' },
+      farPhoria: { min: -3, max: 1, unit: '\u25B3' },
+      nearPhoria: { min: -6, max: 0, unit: '\u25B3' },
+      npc: { min: 5, max: 7, unit: 'cm' },
+      acCalculated: { min: 5, max: 7, unit: '\u25B3/D' },
+      acGradient: { min: 3, max: 5, unit: '\u25B3/D' },
+      stereoAcuity: { min: 100, max: null, unit: '\u2033' },
+      farBI: { blur: null, breakMin: 4, breakMax: 10, recoveryMin: 2, recoveryMax: 6 },
+      farBO: { blurMin: 5, blurMax: 13, breakMin: 11, breakMax: 27, recoveryMin: 6, recoveryMax: 14 },
+      nearBI: { blurMin: 9, blurMax: 17, breakMin: 17, breakMax: 25, recoveryMin: 8, recoveryMax: 18 },
+      nearBO: { blurMin: 12, blurMax: 22, breakMin: 15, breakMax: 27, recoveryMin: 4, recoveryMax: 18 }
+    };
+
+    var BADGE_LABELS = {
+      normal: '正常',
+      low: '偏低',
+      high: '偏高',
+      critical: '显著异常',
+      attention: '需关注'
+    };
+
+    function analyzeAbnormalities(data) {
+      var results = [];
+      var age = data.basic.age;
+      var ampExpected = age ? (15 - 0.25 * age) : null;
+
+      function addResult(key, label, value, normalRange, level, description, group) {
+        var displayValue = SIGNED_KEYS[key] ? formatSignedDiopter(value) : value;
+        results.push({ key: key, label: label, value: displayValue, normalRange: normalRange, level: level, description: description, group: group });
+      }
+
+      function checkSimple(key, label, value, nv, group, lowDesc, highDesc) {
+        if (value === null || value === undefined) return;
+        var rangeText = '';
+        if (nv.min !== null && nv.max !== null) rangeText = nv.min + '~' + nv.max + nv.unit;
+        else if (nv.min !== null) rangeText = '\u2265' + nv.min + nv.unit;
+        else if (nv.max !== null) rangeText = '\u2264' + nv.max + nv.unit;
+
+        var level = 'normal', desc = '正常';
+        if (nv.max !== null && value > nv.max) { level = 'high'; desc = highDesc || '高于正常值上限'; }
+        else if (nv.min !== null && value < nv.min) { level = 'low'; desc = lowDesc || '低于正常值下限'; }
+        addResult(key, label, value, rangeText, level, desc, group);
+      }
+
+      var a = data.accommodation, c = data.convergence, b = data.binocular;
+
+      if (a.nra !== null) {
+        if (a.nra > 2.50) addResult('nra', 'NRA（负相对调节）', a.nra, '+2.00~+2.50D', 'high', '调节痉挛/近视过矫', 'accommodation');
+        else if (a.nra < 2.00) addResult('nra', 'NRA（负相对调节）', a.nra, '+2.00~+2.50D', 'low', '调节过度表现', 'accommodation');
+        else addResult('nra', 'NRA（负相对调节）', a.nra, '+2.00~+2.50D', 'normal', '正常', 'accommodation');
+      }
+
+      if (a.pra !== null) {
+        if (a.pra < 2.50) addResult('pra', 'PRA（正相对调节）', a.pra, '\u2265+2.50D', 'low', '调节不足表现', 'accommodation');
+        else addResult('pra', 'PRA（正相对调节）', a.pra, '\u2265+2.50D', 'normal', '正常', 'accommodation');
+      }
+
+      if (a.bcc !== null) {
+        if (a.bcc < 0.25) addResult('bcc', 'BCC（调节反应）', a.bcc, '+0.25~+0.75D', 'low', '调节超前', 'accommodation');
+        else if (a.bcc > 0.75) addResult('bcc', 'BCC（调节反应）', a.bcc, '+0.25~+0.75D', 'high', '调节滞后', 'accommodation');
+        else addResult('bcc', 'BCC（调节反应）', a.bcc, '+0.25~+0.75D', 'normal', '正常', 'accommodation');
+      }
+
+      if (ampExpected !== null) {
+        var ampThreshold = ampExpected - 2;
+        if (a.ampRight !== null) {
+          if (a.ampRight < ampThreshold) addResult('ampRight', '右眼 AMP', a.ampRight, '\u2265' + ampThreshold.toFixed(1) + 'D', 'critical', '调节幅度显著降低', 'accommodation');
+          else if (a.ampRight < ampExpected) addResult('ampRight', '右眼 AMP', a.ampRight, '\u2265' + ampExpected.toFixed(1) + 'D', 'attention', '接近期望值下限', 'accommodation');
+          else addResult('ampRight', '右眼 AMP', a.ampRight, '\u2265' + ampExpected.toFixed(1) + 'D', 'normal', '正常', 'accommodation');
+        }
+        if (a.ampLeft !== null) {
+          if (a.ampLeft < ampThreshold) addResult('ampLeft', '左眼 AMP', a.ampLeft, '\u2265' + ampThreshold.toFixed(1) + 'D', 'critical', '调节幅度显著降低', 'accommodation');
+          else if (a.ampLeft < ampExpected) addResult('ampLeft', '左眼 AMP', a.ampLeft, '\u2265' + ampExpected.toFixed(1) + 'D', 'attention', '接近期望值下限', 'accommodation');
+          else addResult('ampLeft', '左眼 AMP', a.ampLeft, '\u2265' + ampExpected.toFixed(1) + 'D', 'normal', '正常', 'accommodation');
+        }
+      }
+
+      if (a.sensitivityRight !== null) checkSimple('sensitivityRight', '右眼灵敏度', a.sensitivityRight, NORMAL_VALUES.sensitivityMonocular, 'accommodation', '调节灵敏度下降', null);
+      if (a.sensitivityLeft !== null) checkSimple('sensitivityLeft', '左眼灵敏度', a.sensitivityLeft, NORMAL_VALUES.sensitivityMonocular, 'accommodation', '调节灵敏度下降', null);
+      if (a.sensitivityBinocular !== null) checkSimple('sensitivityBinocular', '双眼灵敏度', a.sensitivityBinocular, NORMAL_VALUES.sensitivityBinocular, 'accommodation', '调节灵敏度下降', null);
+
+      if (c.farPhoria !== null) {
+        if (c.farPhoria > 1) addResult('farPhoria', '远距离眼位', c.farPhoria, '-3~+1\u25B3', 'high', '远内隐斜', 'convergence');
+        else if (c.farPhoria < -3) addResult('farPhoria', '远距离眼位', c.farPhoria, '-3~+1\u25B3', 'low', '远外隐斜过大', 'convergence');
+        else addResult('farPhoria', '远距离眼位', c.farPhoria, '-3~+1\u25B3', 'normal', '正常', 'convergence');
+      }
+
+      if (c.nearPhoria !== null) {
+        if (c.nearPhoria > 0) addResult('nearPhoria', '近距离眼位', c.nearPhoria, '-6~0\u25B3', 'high', '近内隐斜', 'convergence');
+        else if (c.nearPhoria < -6) addResult('nearPhoria', '近距离眼位', c.nearPhoria, '-6~0\u25B3', 'low', '近外隐斜过大', 'convergence');
+        else addResult('nearPhoria', '近距离眼位', c.nearPhoria, '-6~0\u25B3', 'normal', '正常', 'convergence');
+      }
+
+      if (c.acValue !== null) {
+        var nv = c.acMethod === 'gradient' ? NORMAL_VALUES.acGradient : NORMAL_VALUES.acCalculated;
+        var methodLabel = c.acMethod === 'gradient' ? '梯度法' : '计算法';
+        if (c.acValue < nv.min) addResult('acValue', 'AC/A（' + methodLabel + '）', c.acValue, nv.min + '~' + nv.max + nv.unit, 'low', '低于正常', 'convergence');
+        else if (c.acValue > nv.max) addResult('acValue', 'AC/A（' + methodLabel + '）', c.acValue, nv.min + '~' + nv.max + nv.unit, 'high', '高于正常', 'convergence');
+        else addResult('acValue', 'AC/A（' + methodLabel + '）', c.acValue, nv.min + '~' + nv.max + nv.unit, 'normal', '正常', 'convergence');
+      }
+
+      if (c.npc !== null) {
+        if (c.npc < 5) addResult('npc', 'NPC', c.npc, '5~7cm', 'low', '偏低（集合过度倾向）', 'convergence');
+        else if (c.npc > 7) addResult('npc', 'NPC', c.npc, '5~7cm', 'high', '偏高（集合不足倾向）', 'convergence');
+        else addResult('npc', 'NPC', c.npc, '5~7cm', 'normal', '正常', 'convergence');
+      }
+
+      function checkFusion(prefix, label, data, nv, group) {
+        var keys = ['blur', 'break', 'recovery'];
+        var labels = ['模糊', '破裂', '恢复'];
+        keys.forEach(function(k, i) {
+          var val = data[k];
+          if (val === null || val === undefined || val === 'X') return;
+          var minKey = k === 'blur' ? 'blurMin' : (k === 'break' ? 'breakMin' : 'recoveryMin');
+          var maxKey = k === 'blur' ? 'blurMax' : (k === 'break' ? 'breakMax' : 'recoveryMax');
+          var minVal = nv[minKey], maxVal = nv[maxKey];
+          if (minVal === undefined || maxVal === undefined) return;
+          var rangeText = minVal + '~' + maxVal + '\u25B3';
+          var level = 'normal', desc = '正常';
+          if (val < minVal) { level = 'low'; desc = '低于正常范围'; }
+          else if (val > maxVal) { level = 'high'; desc = '高于正常范围'; }
+          addResult(prefix + '.' + k, label + ' ' + labels[i], val, rangeText, level, desc, group);
+        });
+      }
+
+      checkFusion('farBI', '远BI', c.farBI, NORMAL_VALUES.farBI, 'convergence');
+      checkFusion('farBO', '远BO', c.farBO, NORMAL_VALUES.farBO, 'convergence');
+      checkFusion('nearBI', '近BI', c.nearBI, NORMAL_VALUES.nearBI, 'convergence');
+      checkFusion('nearBO', '近BO', c.nearBO, NORMAL_VALUES.nearBO, 'convergence');
+
+      if (b.worthFourDot !== null && b.worthFourDot !== '4') {
+        addResult('worthFourDot', 'Worth-4点', b.worthFourDot + '点', '4点', 'critical', '融合功能异常', 'binocular');
+      } else if (b.worthFourDot === '4') {
+        addResult('worthFourDot', 'Worth-4点', '4点', '4点', 'normal', '正常', 'binocular');
+      }
+
+      if (b.stereoAcuity !== null) {
+        if (b.stereoAcuity < 100) addResult('stereoAcuity', '立体视', b.stereoAcuity, '\u2265100\u2033', 'critical', '立体视异常', 'binocular');
+        else addResult('stereoAcuity', '立体视', b.stereoAcuity, '\u2265100\u2033', 'normal', '正常', 'binocular');
+      }
+
+      return results;
+    }
+
+    function createBadgeHtml(level, text) {
+      return '<span class="abnormal-badge badge-' + level + '"><span class="dot"></span>' + (text || BADGE_LABELS[level] || '') + '</span>';
+    }
+
+    function renderAnalysisPage() {
+      var results = analyzeAbnormalities(gExamData);
+
+      var basicEl = document.getElementById('analysis-basic-info');
+      if (basicEl) {
+        basicEl.innerHTML = '<div class="basic-info-row">' +
+          '<span>年龄：' + formatValue(gExamData.basic.age, '岁') + '</span>' +
+          '<span>PD：' + formatValue(gExamData.basic.pd, 'cm') + '</span>' +
+          '<span>距离：' + formatValue(gExamData.basic.nearDistance, 'm') + '</span>' +
+        '</div>';
+      }
+
+      var groups = { accommodation: [], convergence: [], binocular: [] };
+      results.forEach(function(r) {
+        if (groups[r.group]) groups[r.group].push(r);
+      });
+
+      ['accommodation', 'convergence', 'binocular'].forEach(function(g) {
+        var container = document.getElementById('analysis-' + g);
+        if (!container) return;
+        var items = groups[g].sort(function(a, b) {
+          var order = { critical: 0, high: 1, low: 2, attention: 3, normal: 4 };
+          return (order[a.level] || 5) - (order[b.level] || 5);
+        });
+        if (items.length === 0) {
+          container.innerHTML = '<div style="font-size:var(--font-sm);color:var(--text-hint)">暂无数据</div>';
+          return;
+        }
+        var html = '';
+        items.forEach(function(item) {
+          html += '<div class="analysis-item">' +
+            '<div class="item-left">' +
+              '<span class="item-label">' + item.label + '</span>' +
+              '<span class="item-detail">正常范围：' + item.normalRange + '</span>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center">' +
+              '<span class="item-value">' + formatValue(item.value) + '</span>' +
+              createBadgeHtml(item.level) +
+            '</div>' +
+          '</div>';
+        });
+        container.innerHTML = html;
+      });
+    }
+
+    function runAnalysis() {
+      renderAnalysisPage();
+      updateInputBadges();
+    }
+
+    function updateInputBadges() {
+      var results = analyzeAbnormalities(gExamData);
+      var badgeMap = {};
+      results.forEach(function(r) { badgeMap[r.key] = r.level; });
+
+      document.querySelectorAll('#page-input .input-wrapper').forEach(function(wrapper) {
+        var inp = wrapper.querySelector('input, select');
+        if (!inp) return;
+        var bind = inp.getAttribute('data-bind');
+        if (!bind) return;
+        var mappedKey = bind.replace('accommodation.', '').replace('convergence.', '').replace('binocular.', '').replace('basic.', '');
+        var specialMap = {
+          'nra': 'nra', 'pra': 'pra', 'bcc': 'bcc',
+          'ampRight': 'ampRight', 'ampLeft': 'ampLeft',
+          'sensitivityRight': 'sensitivityRight', 'sensitivityLeft': 'sensitivityLeft', 'sensitivityBinocular': 'sensitivityBinocular',
+          'farPhoria': 'farPhoria', 'nearPhoria': 'nearPhoria', 'acValue': 'acValue', 'npc': 'npc',
+          'farBI.blur': 'farBI.blur', 'farBI.break': 'farBI.break', 'farBI.recovery': 'farBI.recovery',
+          'farBO.blur': 'farBO.blur', 'farBO.break': 'farBO.break', 'farBO.recovery': 'farBO.recovery',
+          'nearBI.blur': 'nearBI.blur', 'nearBI.break': 'nearBI.break', 'nearBI.recovery': 'nearBI.recovery',
+          'nearBO.blur': 'nearBO.blur', 'nearBO.break': 'nearBO.break', 'nearBO.recovery': 'nearBO.recovery',
+          'worthFourDot': 'worthFourDot', 'stereoAcuity': 'stereoAcuity'
+        };
+        var key = specialMap[bind] || mappedKey;
+        var level = badgeMap[key];
+        var badge = wrapper.querySelector('.status-badge');
+        if (!badge) return;
+        badge.className = 'status-badge';
+        if (level && level !== 'normal') {
+          badge.classList.add('show', level);
+        } else if (level === 'normal') {
+          badge.classList.add('show', 'normal');
+        }
+      });
+    }
+
+    document.getElementById('btn-go-diagnosis').addEventListener('click', function() {
+      renderAccommodationDiagnosis();
+      showPage('page-diagnosis');
+    });
+
+    document.querySelectorAll('#page-input [data-bind]').forEach(function(el) {
+      el.addEventListener('input', function() {
+        updateInputBadges();
+      });
+    });
+
+    gExamData.diagnosis = {
+      accommodation: {
+        insufficiency: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        excess: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        illSustained: { result: false, necessaryConditions: [], sufficientConditions: [], needsUserConfirm: false },
+        infacility: { result: false, necessaryConditions: [], sufficientConditions: [] }
+      }
+    };
+
+    function getAmpExpected(age) {
+      return 15 - 0.25 * age;
+    }
+
+    function isAmpNormal(ampValue, age) {
+      return ampValue >= getAmpExpected(age) - 2;
+    }
+
+    function isAmpSignificantlyLow(ampValue, age) {
+      return ampValue < getAmpExpected(age) - 2;
+    }
+
+    function diagnoseAccommodation(data) {
+      var a = data.accommodation;
+      var c = data.convergence;
+      var age = data.basic.age;
+      if (!age) return gExamData.diagnosis.accommodation;
+
+      function fnum(v) { return v === 'X' ? null : v; }
+
+      var ampExpected = getAmpExpected(age);
+      var ampLowerAmpR = a.ampRight !== null ? a.ampRight : Infinity;
+      var ampLowerAmpL = a.ampLeft !== null ? a.ampLeft : Infinity;
+      var lowerAmp = Math.min(ampLowerAmpR, ampLowerAmpL);
+      var bothAmpNormal = (a.ampRight !== null && a.ampLeft !== null) && !isAmpSignificantlyLow(a.ampRight, age) && !isAmpSignificantlyLow(a.ampLeft, age);
+
+      function makeCond(label, met, detail) {
+        return { label: label, met: !!met, detail: detail || '' };
+      }
+
+      var insufficiency = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      insufficiency.necessaryConditions.push(makeCond('AMP 显著降低（双眼较低者 < ' + formatSignedDiopter(ampExpected - 2) + 'D）', lowerAmp < ampExpected - 2, '较低AMP=' + formatSignedDiopter(lowerAmp) + 'D'));
+      var s1 = makeCond('PRA < 2.50D', a.pra !== null && a.pra < 2.50, a.pra !== null ? 'PRA=' + formatSignedDiopter(a.pra) + 'D' : '');
+      var s2 = makeCond('BCC 滞后（> +0.75D）', a.bcc !== null && a.bcc > 0.75, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) + 'D' : '');
+      var hasNegFlipper = a.flipperRightType === 'negative' || a.flipperRightType === 'both' || a.flipperLeftType === 'negative' || a.flipperLeftType === 'both';
+      var s3 = makeCond('任一眼翻转拍负片困难', hasNegFlipper, '');
+      var nearBoBlur = fnum(c.nearBO.blur);
+      var s4 = makeCond('近BO模糊值 < 12', nearBoBlur !== null && nearBoBlur < 12, nearBoBlur !== null ? '近BO模糊=' + nearBoBlur : '');
+      insufficiency.sufficientConditions = [s1, s2, s3, s4];
+      var necessaryMet = insufficiency.necessaryConditions[0].met;
+      var sufficientCount = insufficiency.sufficientConditions.filter(function(c) { return c.met; }).length;
+      insufficiency.result = necessaryMet && sufficientCount >= 2;
+
+      var excess = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      excess.necessaryConditions.push(makeCond('BCC 超前（< +0.25D）', a.bcc !== null && a.bcc < 0.25, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) + 'D' : ''));
+      var e1 = makeCond('AMP 正常（双眼\u2265期望值）', a.ampRight !== null && a.ampLeft !== null && a.ampRight >= ampExpected && a.ampLeft >= ampExpected, '');
+      var hasPosFlipper = a.flipperRightType === 'positive' || a.flipperRightType === 'both' || a.flipperLeftType === 'positive' || a.flipperLeftType === 'both';
+      var e2 = makeCond('任一眼翻转拍正片困难', hasPosFlipper, '');
+      var e3 = makeCond('NRA < +2.00D', a.nra !== null && a.nra < 2.00, a.nra !== null ? 'NRA=' + formatSignedDiopter(a.nra) + 'D' : '');
+      var e4 = makeCond('内隐斜（近眼位>0 或 远眼位>+1）', (c.nearPhoria !== null && c.nearPhoria > 0) || (c.farPhoria !== null && c.farPhoria > 1), '');
+      excess.sufficientConditions = [e1, e2, e3, e4];
+      var excessNecessaryMet = excess.necessaryConditions[0].met;
+      var excessSufficientCount = excess.sufficientConditions.filter(function(c) { return c.met; }).length;
+      excess.result = excessNecessaryMet && excessSufficientCount >= 1;
+
+      var illSustained = { result: false, necessaryConditions: [], sufficientConditions: [], needsUserConfirm: false };
+      var ampNotSignificantlyLow = !isAmpSignificantlyLow(lowerAmp, age);
+      illSustained.necessaryConditions.push(makeCond('AMP 非显著降低（\u2265期望值-2），需确认耐力特征', ampNotSignificantlyLow, '较低AMP=' + formatSignedDiopter(lowerAmp) + 'D'));
+      var i1 = makeCond('BCC 滞后（> +0.75D）', a.bcc !== null && a.bcc > 0.75, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) + 'D' : '');
+      var i2 = makeCond('任一眼翻转拍负片困难', hasNegFlipper, '');
+      var i3 = makeCond('PRA < 2.50D', a.pra !== null && a.pra < 2.50, a.pra !== null ? 'PRA=' + formatSignedDiopter(a.pra) + 'D' : '');
+      var i4 = makeCond('近BO模糊值 < 12', nearBoBlur !== null && nearBoBlur < 12, nearBoBlur !== null ? '近BO模糊=' + nearBoBlur : '');
+      illSustained.sufficientConditions = [i1, i2, i3, i4];
+      var illNecessaryMet = illSustained.necessaryConditions[0].met;
+      var illSufficientCount = illSustained.sufficientConditions.filter(function(c) { return c.met; }).length;
+      illSustained.needsUserConfirm = illNecessaryMet && illSufficientCount >= 2;
+      illSustained.result = false;
+
+      var infacility = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var monoLow = (a.sensitivityRight !== null && a.sensitivityRight < 12) || (a.sensitivityLeft !== null && a.sensitivityLeft < 12);
+      var binocLow = a.sensitivityBinocular !== null && a.sensitivityBinocular < 8;
+      infacility.necessaryConditions.push(makeCond('单眼灵敏度 < 12cpm 或 双眼灵敏度 < 8cpm', monoLow || binocLow, ''));
+      var f1 = makeCond('AMP 正常（双眼\u2265期望值）', a.ampRight !== null && a.ampLeft !== null && a.ampRight >= ampExpected && a.ampLeft >= ampExpected, '');
+      var bccNormal = a.bcc !== null && a.bcc >= 0.25 && a.bcc <= 0.75;
+      var f2 = makeCond('BCC 正常（+0.25~+0.75D）', bccNormal, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) + 'D' : '');
+      var nraLow = a.nra !== null && a.nra < 2.00;
+      var praLow = a.pra !== null && a.pra < 2.50;
+      var f3 = makeCond('NRA与PRA均降低', nraLow && praLow, '');
+      var hasBothFlipper = a.flipperBinocularType === 'both' || a.flipperRightType === 'both' || a.flipperLeftType === 'both';
+      var f4 = makeCond('翻转拍双向困难', hasBothFlipper, '');
+      infacility.sufficientConditions = [f1, f2, f3, f4];
+      var infacNecessaryMet = infacility.necessaryConditions[0].met;
+      var ampBothNormal = a.ampRight !== null && a.ampLeft !== null && a.ampRight >= ampExpected && a.ampLeft >= ampExpected;
+      var bccInRange = a.bcc !== null && a.bcc >= 0.25 && a.bcc <= 0.75;
+      var infacSufficientCount = infacility.sufficientConditions.filter(function(c) { return c.met; }).length;
+      infacility.result = infacNecessaryMet && ampBothNormal && bccInRange && infacSufficientCount >= 1;
+      if (binocLow && !monoLow) {
+        infacility.differentialNote = '仅双眼灵敏度异常而单眼正常，提示聚散功能问题而非单纯调节灵敏度异常';
+      }
+
+      gExamData.diagnosis.accommodation = {
+        insufficiency: insufficiency,
+        excess: excess,
+        illSustained: illSustained,
+        infacility: infacility
+      };
+
+      return gExamData.diagnosis.accommodation;
+    }
+
+    function renderDiagnosisConditionList(conditions, label) {
+      var html = '<ul class="condition-list">';
+      conditions.forEach(function(c) {
+        html += '<li class="' + (c.met ? 'condition-met' : 'condition-unmet') + '">' + (c.met ? '\u2713' : '\u2717') + ' ' + c.label;
+        if (c.detail) html += '（' + c.detail + '）';
+        html += '</li>';
+      });
+      html += '</ul>';
+      return html;
+    }
+
+    function renderAccommodationDiagnosis() {
+      var d = diagnoseAccommodation(gExamData);
+      var container = document.getElementById('diagnosis-accommodation');
+      if (!container) return;
+
+      var types = [
+        { key: 'insufficiency', name: '调节不足', data: d.insufficiency },
+        { key: 'excess', name: '调节过度', data: d.excess },
+        { key: 'illSustained', name: '调节不能持久', data: d.illSustained },
+        { key: 'infacility', name: '调节灵敏度异常', data: d.infacility }
+      ];
+
+      var html = '';
+      types.forEach(function(t) {
+        var data = t.data;
+        var statusClass, statusText;
+        if (data.result) {
+          statusClass = 'result-positive'; statusText = '\u2717 诊断成立';
+        } else if (data.needsUserConfirm) {
+          statusClass = 'result-pending'; statusText = '\u26A0 需用户确认';
+        } else {
+          statusClass = 'result-negative'; statusText = '\u2713 未诊断';
+        }
+
+        html += '<div class="diagnosis-result">';
+        html += '<div class="result-title">' + t.name + '：<span class="' + statusClass + '">' + statusText + '</span></div>';
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0">必要条件</div>';
+        html += renderDiagnosisConditionList(data.necessaryConditions);
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0">充分不必要条件</div>';
+        html += renderDiagnosisConditionList(data.sufficientConditions);
+
+        if (data.differentialNote) {
+          html += '<div style="font-size:var(--font-xs);color:var(--info);margin-top:4px">\u2139 ' + data.differentialNote + '</div>';
+        }
+
+        if (data.needsUserConfirm) {
+          html += '<div class="confirm-panel" id="confirm-illsustained">';
+          html += '<p>调节幅度首测正常，但重复测量时是否逐渐下降？</p>';
+          html += '<div class="confirm-btns">';
+          html += '<button type="button" class="btn-primary" style="flex:1" onclick="confirmIllSustained(true)">是，逐渐下降</button>';
+          html += '<button type="button" class="btn-secondary" style="flex:1" onclick="confirmIllSustained(false)">否</button>';
+          html += '</div></div>';
+        }
+
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    function confirmIllSustained(confirmed) {
+      gExamData.diagnosis.accommodation.illSustained.result = confirmed;
+      var panel = document.getElementById('confirm-illsustained');
+      if (panel) {
+        panel.innerHTML = confirmed
+          ? '<p style="color:var(--danger);font-weight:600">已确认：调节不能持久</p>'
+          : '<p style="color:var(--success);font-weight:600">已排除：调节不能持久</p>';
+      }
+    }
+
+    document.getElementById('btn-go-diagnosis').addEventListener('click', function() {
+      renderAccommodationDiagnosis();
+      showPage('page-diagnosis');
+    });
+
+    document.getElementById('btn-back-analysis2').addEventListener('click', function() {
+      showPage('page-analysis');
+    });
+
+    document.getElementById('btn-go-report').addEventListener('click', function() {
+      showPage('page-report');
+    });
+
+    gExamData.diagnosis.convergence = {
+      steps: [],
+      types: {
+        convergenceInsufficiency: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        convergenceExcess: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        divergenceInsufficiency: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        divergenceExcess: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        basicExophoria: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        basicEsophoria: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        fusionalVergenceDysfunction: { result: false, necessaryConditions: [], sufficientConditions: [] },
+        pseudoConvergenceInsufficiency: { result: false, necessaryConditions: [], sufficientConditions: [] }
+      }
+    };
+
+    function checkSheardCriterion(phoriaValue, boBlurValue) {
+      var absPhoria = Math.abs(phoriaValue);
+      var satisfied = boBlurValue !== null && boBlurValue >= 2 * absPhoria;
+      var prismNeeded = satisfied ? 0 : (2 * absPhoria - (boBlurValue || 0)) / 3;
+      return { satisfied: satisfied, prismNeeded: prismNeeded };
+    }
+
+    function checkOneToOneCriterion(phoriaValue, biRecoveryValue) {
+      var absPhoria = Math.abs(phoriaValue);
+      var satisfied = biRecoveryValue !== null && biRecoveryValue >= absPhoria;
+      return { satisfied: satisfied };
+    }
+
+    function diagnoseConvergence(data, accommodationDiagnosis) {
+      var c = data.convergence;
+      var a = data.accommodation;
+      var age = data.basic.age;
+      var steps = [];
+      var types = {};
+
+      function fnum(v) { return v === 'X' ? null : v; }
+
+      function makeCond(label, met, detail) {
+        return { label: label, met: !!met, detail: detail || '' };
+      }
+
+      var farPhoria = c.farPhoria;
+      var nearPhoria = c.nearPhoria;
+      var farType = farPhoria === null ? 'unknown' : (farPhoria > 0 ? 'eso' : (farPhoria < 0 ? 'exo' : 'ortho'));
+      var nearType = nearPhoria === null ? 'unknown' : (nearPhoria > 0 ? 'eso' : (nearPhoria < 0 ? 'exo' : 'ortho'));
+
+      steps.push({ step: 1, title: '看眼位', result: { farType: farType, farValue: farPhoria, nearType: nearType, nearValue: nearPhoria } });
+
+      var farAbnormal = farPhoria !== null && (farPhoria > 1 || farPhoria < -3);
+      var nearAbnormal = nearPhoria !== null && (nearPhoria > 0 || nearPhoria < -6);
+      var pattern, preliminaryType;
+      if (nearAbnormal && !farAbnormal) {
+        pattern = 'nearProblem';
+        preliminaryType = nearType === 'exo' ? 'convergenceInsufficiency' : 'convergenceExcess';
+      } else if (farAbnormal && !nearAbnormal) {
+        pattern = 'farProblem';
+        preliminaryType = farType === 'exo' ? 'divergenceExcess' : 'divergenceInsufficiency';
+      } else if (farAbnormal && nearAbnormal) {
+        pattern = 'bothProblem';
+        preliminaryType = (farType === 'exo' && nearType === 'exo') ? 'basicExophoria' : 'basicEsophoria';
+      } else {
+        pattern = 'normal';
+        preliminaryType = 'none';
+      }
+      steps.push({ step: 2, title: '初步判断', result: { pattern: pattern, preliminaryType: preliminaryType } });
+
+      var criterionDetails = [];
+      var criterionSatisfied = true;
+      if (farType === 'exo' && farPhoria !== null) {
+        var sc = checkSheardCriterion(farPhoria, fnum(c.farBO.blur));
+        criterionDetails.push({ location: '远', criterion: 'Sheard', satisfied: sc.satisfied, prismNeeded: sc.prismNeeded });
+        if (!sc.satisfied) criterionSatisfied = false;
+      }
+      if (nearType === 'exo' && nearPhoria !== null) {
+        var sc2 = checkSheardCriterion(nearPhoria, fnum(c.nearBO.blur));
+        criterionDetails.push({ location: '近', criterion: 'Sheard', satisfied: sc2.satisfied, prismNeeded: sc2.prismNeeded });
+        if (!sc2.satisfied) criterionSatisfied = false;
+      }
+      if (farType === 'eso' && farPhoria !== null) {
+        var oc = checkOneToOneCriterion(farPhoria, fnum(c.farBI.recovery));
+        criterionDetails.push({ location: '远', criterion: '1:1', satisfied: oc.satisfied });
+        if (!oc.satisfied) criterionSatisfied = false;
+      }
+      if (nearType === 'eso' && nearPhoria !== null) {
+        var oc2 = checkOneToOneCriterion(nearPhoria, fnum(c.nearBI.recovery));
+        criterionDetails.push({ location: '近', criterion: '1:1', satisfied: oc2.satisfied });
+        if (!oc2.satisfied) criterionSatisfied = false;
+      }
+      steps.push({
+        step: 3, title: '看抵抗力', result: {
+          criterion: criterionDetails.length > 0 ? criterionDetails[0].criterion : 'N/A',
+          satisfied: criterionSatisfied,
+          details: criterionDetails
+        }
+      });
+
+      var acValue = c.acValue;
+      var acStatus = 'unknown';
+      if (acValue !== null) {
+        if (c.acMethod === 'calculated') {
+          acStatus = acValue < 5 ? 'low' : (acValue > 7 ? 'high' : 'normal');
+        } else {
+          acStatus = acValue < 3 ? 'low' : (acValue > 5 ? 'high' : 'normal');
+        }
+      }
+      var refinedType = preliminaryType;
+      if (acStatus === 'high' && nearAbnormal) refinedType = 'convergenceExcess';
+      else if (acStatus === 'high' && farAbnormal) refinedType = 'divergenceExcess';
+      else if (acStatus === 'low' && nearAbnormal) refinedType = 'convergenceInsufficiency';
+      else if (acStatus === 'low' && farAbnormal) refinedType = 'divergenceInsufficiency';
+      else if (acStatus === 'normal' && farAbnormal && nearAbnormal) refinedType = (farType === 'exo' && nearType === 'exo') ? 'basicExophoria' : 'basicEsophoria';
+      else if (acStatus === 'normal' && !farAbnormal && !nearAbnormal) refinedType = 'fusionalVergenceDysfunction';
+      steps.push({ step: 4, title: '看AC/A值', result: { acStatus: acStatus, refinedType: refinedType } });
+
+      var relation = '';
+      var accInsuff = accommodationDiagnosis && accommodationDiagnosis.insufficiency && accommodationDiagnosis.insufficiency.result;
+      var accExcess = accommodationDiagnosis && accommodationDiagnosis.excess && accommodationDiagnosis.excess.result;
+      if (preliminaryType === 'convergenceInsufficiency' && accExcess) relation = '集合不足可能继发调节过度';
+      else if (preliminaryType === 'convergenceExcess' && accInsuff) relation = '集合过度可能继发调节不足';
+      else if (preliminaryType === 'convergenceInsufficiency') relation = '集合不足，需结合调节评估';
+      else if (preliminaryType === 'convergenceExcess') relation = '集合过度，需结合调节评估';
+      else relation = '调节与集合关系需综合判断';
+      steps.push({ step: 5, title: '看调节与集合关系', result: { relation: relation } });
+
+      var primary = '', secondary = '', rule = '';
+      if (accInsuff && preliminaryType === 'convergenceInsufficiency') { primary = '调节'; secondary = '集合'; rule = '相同性质找调节：调节原发，集合继发'; }
+      else if (accExcess && preliminaryType === 'convergenceExcess') { primary = '调节'; secondary = '集合'; rule = '相同性质找调节：调节原发，集合继发'; }
+      else if (preliminaryType === 'convergenceInsufficiency' && accExcess) { primary = '集合'; secondary = '调节'; rule = '不同性质找集合：集合原发，调节继发'; }
+      else if (preliminaryType === 'convergenceExcess' && accInsuff) { primary = '集合'; secondary = '调节'; rule = '不同性质找集合：集合原发，调节继发'; }
+      else { primary = '待定'; secondary = '待定'; rule = '需更多数据判断原发与继发'; }
+      steps.push({ step: 6, title: '原发与继发', result: { primary: primary, secondary: secondary, rule: rule } });
+
+      var affectsRefraction = false, recommendation = '';
+      if (accExcess) { affectsRefraction = true; recommendation = '调节过度需雾视/眼贴眼罩/反转拍/散瞳排除假性近视'; }
+      else { affectsRefraction = false; recommendation = '调节不足不影响屈光度'; }
+      steps.push({ step: 7, title: '调节与屈光度', result: { affectsRefraction: affectsRefraction, recommendation: recommendation } });
+
+      var ampExpected = age ? getAmpExpected(age) : null;
+      var lowerAmp = Math.min(a.ampRight !== null ? a.ampRight : Infinity, a.ampLeft !== null ? a.ampLeft : Infinity);
+
+      var CI = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var nearExoBeyond = nearPhoria !== null && nearPhoria < -6;
+      var farInNormalRange = farPhoria !== null && farPhoria >= -3 && farPhoria <= 1;
+      var npcBeyond = c.npc !== null && c.npc > 7;
+      CI.necessaryConditions.push(makeCond('近眼位 < -6\u25B3', nearExoBeyond, nearPhoria !== null ? '近眼位=' + nearPhoria + '\u25B3' : ''));
+      CI.necessaryConditions.push(makeCond('远眼位在正常范围或轻微外隐斜', farInNormalRange, farPhoria !== null ? '远眼位=' + farPhoria + '\u25B3' : ''));
+      CI.necessaryConditions.push(makeCond('NPC > 7cm', npcBeyond, c.npc !== null ? 'NPC=' + c.npc + 'cm' : ''));
+      var ciS = [];
+      ciS.push(makeCond('AC/A 低', acStatus === 'low', acValue !== null ? 'AC/A=' + acValue : ''));
+      ciS.push(makeCond('近BO模糊值 < 12', fnum(c.nearBO.blur) !== null && fnum(c.nearBO.blur) < 12, fnum(c.nearBO.blur) !== null ? '近BO模糊=' + fnum(c.nearBO.blur) : ''));
+      ciS.push(makeCond('NRA < +2.00D', a.nra !== null && a.nra < 2.00, a.nra !== null ? 'NRA=' + formatSignedDiopter(a.nra) : ''));
+      ciS.push(makeCond('双眼翻转拍正片困难', a.flipperBinocularType === 'positive' || a.flipperBinocularType === 'both', ''));
+      ciS.push(makeCond('BCC < +0.25D', a.bcc !== null && a.bcc < 0.25, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) : ''));
+      CI.sufficientConditions = ciS;
+      var ciNecMet = CI.necessaryConditions.every(function(c) { return c.met; });
+      var ciSufCount = CI.sufficientConditions.filter(function(c) { return c.met; }).length;
+      CI.result = ciNecMet && ciSufCount >= 2;
+
+      var CE = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var nearEso = nearPhoria !== null && nearPhoria > 0;
+      var farNormalOrEso = farPhoria !== null && farPhoria >= -3;
+      CE.necessaryConditions.push(makeCond('近眼位 > 0（内隐斜）', nearEso, nearPhoria !== null ? '近眼位=' + nearPhoria : ''));
+      CE.necessaryConditions.push(makeCond('远眼位正常或轻微内隐斜', farNormalOrEso, farPhoria !== null ? '远眼位=' + farPhoria : ''));
+      CE.necessaryConditions.push(makeCond('AC/A \u2265 7（计算法）', c.acMethod === 'calculated' && acValue !== null && acValue >= 7, acValue !== null ? 'AC/A=' + acValue : ''));
+      var ceS = [];
+      ceS.push(makeCond('近BI恢复值降低', fnum(c.nearBI.recovery) !== null && fnum(c.nearBI.recovery) < 8, fnum(c.nearBI.recovery) !== null ? '近BI恢复=' + fnum(c.nearBI.recovery) : ''));
+      ceS.push(makeCond('PRA < 2.50D', a.pra !== null && a.pra < 2.50, a.pra !== null ? 'PRA=' + formatSignedDiopter(a.pra) : ''));
+      ceS.push(makeCond('双眼翻转拍负片困难', a.flipperBinocularType === 'negative' || a.flipperBinocularType === 'both', ''));
+      ceS.push(makeCond('BCC > +0.75D', a.bcc !== null && a.bcc > 0.75, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) : ''));
+      ceS.push(makeCond('NPC < 5cm', c.npc !== null && c.npc < 5, c.npc !== null ? 'NPC=' + c.npc : ''));
+      CE.sufficientConditions = ceS;
+      var ceNecMet = CE.necessaryConditions.every(function(c) { return c.met; });
+      var ceSufCount = CE.sufficientConditions.filter(function(c) { return c.met; }).length;
+      CE.result = ceNecMet && ceSufCount >= 1;
+
+      var DI = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var farEso = farPhoria !== null && farPhoria > 1;
+      var nearInNormal = nearPhoria !== null && nearPhoria >= -6 && nearPhoria <= 0;
+      DI.necessaryConditions.push(makeCond('远眼位 > +1\u25B3（内隐斜）', farEso, farPhoria !== null ? '远眼位=' + farPhoria : ''));
+      DI.necessaryConditions.push(makeCond('近眼位在0~-6范围', nearInNormal, nearPhoria !== null ? '近眼位=' + nearPhoria : ''));
+      DI.necessaryConditions.push(makeCond('AC/A < 5（计算法）', c.acMethod === 'calculated' && acValue !== null && acValue < 5, acValue !== null ? 'AC/A=' + acValue : ''));
+      var diS = [];
+      diS.push(makeCond('远BI恢复值降低', fnum(c.farBI.recovery) !== null && fnum(c.farBI.recovery) < 2, fnum(c.farBI.recovery) !== null ? '远BI恢复=' + fnum(c.farBI.recovery) : ''));
+      diS.push(makeCond('PRA < 2.50D', a.pra !== null && a.pra < 2.50, a.pra !== null ? 'PRA=' + formatSignedDiopter(a.pra) : ''));
+      DI.sufficientConditions = diS;
+      var diNecMet = DI.necessaryConditions.every(function(c) { return c.met; });
+      var diSufCount = DI.sufficientConditions.filter(function(c) { return c.met; }).length;
+      DI.result = diNecMet && diSufCount >= 1;
+
+      var DE = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var farExo = farPhoria !== null && farPhoria < -3;
+      var nearNormal = nearPhoria !== null && nearPhoria >= -6 && nearPhoria <= 0;
+      DE.necessaryConditions.push(makeCond('远眼位 < -3\u25B3（外隐斜）', farExo, farPhoria !== null ? '远眼位=' + farPhoria : ''));
+      DE.necessaryConditions.push(makeCond('近眼位正常', nearNormal, nearPhoria !== null ? '近眼位=' + nearPhoria : ''));
+      DE.necessaryConditions.push(makeCond('AC/A 高（计算法）', c.acMethod === 'calculated' && acValue !== null && acValue > 7, acValue !== null ? 'AC/A=' + acValue : ''));
+      var deS = [];
+      deS.push(makeCond('远BO模糊值降低', fnum(c.farBO.blur) !== null && fnum(c.farBO.blur) < 5, fnum(c.farBO.blur) !== null ? '远BO模糊=' + fnum(c.farBO.blur) : ''));
+      deS.push(makeCond('NRA < +2.00D', a.nra !== null && a.nra < 2.00, a.nra !== null ? 'NRA=' + formatSignedDiopter(a.nra) : ''));
+      deS.push(makeCond('双眼翻转拍正片困难', a.flipperBinocularType === 'positive' || a.flipperBinocularType === 'both', ''));
+      DE.sufficientConditions = deS;
+      var deNecMet = DE.necessaryConditions.every(function(c) { return c.met; });
+      var deSufCount = DE.sufficientConditions.filter(function(c) { return c.met; }).length;
+      DE.result = deNecMet && deSufCount >= 1;
+
+      var BE = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var bothExo = farType === 'exo' && nearType === 'exo';
+      var diffSmall = farPhoria !== null && nearPhoria !== null && Math.abs(farPhoria - nearPhoria) < 5;
+      BE.necessaryConditions.push(makeCond('|远眼位-近眼位| < 5 且均为外隐斜', bothExo && diffSmall, ''));
+      BE.necessaryConditions.push(makeCond('AC/A 正常', acStatus === 'normal', acValue !== null ? 'AC/A=' + acValue : ''));
+      var beS = [];
+      beS.push(makeCond('远BO模糊值降低', fnum(c.farBO.blur) !== null && fnum(c.farBO.blur) < 5, ''));
+      beS.push(makeCond('近BO模糊值降低', fnum(c.nearBO.blur) !== null && fnum(c.nearBO.blur) < 12, ''));
+      beS.push(makeCond('NRA < +2.00D', a.nra !== null && a.nra < 2.00, ''));
+      beS.push(makeCond('双眼翻转拍正片困难', a.flipperBinocularType === 'positive' || a.flipperBinocularType === 'both', ''));
+      beS.push(makeCond('NPC > 10cm', c.npc !== null && c.npc > 10, ''));
+      BE.sufficientConditions = beS;
+      var beNecMet = BE.necessaryConditions.every(function(c) { return c.met; });
+      var beSufCount = BE.sufficientConditions.filter(function(c) { return c.met; }).length;
+      BE.result = beNecMet && beSufCount >= 2;
+
+      var BES = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var bothEso = farType === 'eso' && nearType === 'eso';
+      BES.necessaryConditions.push(makeCond('|远眼位-近眼位| < 5 且均为内隐斜', bothEso && diffSmall, ''));
+      BES.necessaryConditions.push(makeCond('AC/A 正常', acStatus === 'normal', acValue !== null ? 'AC/A=' + acValue : ''));
+      var besS = [];
+      besS.push(makeCond('远BI恢复值降低', fnum(c.farBI.recovery) !== null && fnum(c.farBI.recovery) < 2, ''));
+      besS.push(makeCond('近BI恢复值降低', fnum(c.nearBI.recovery) !== null && fnum(c.nearBI.recovery) < 8, ''));
+      besS.push(makeCond('PRA < 2.50D', a.pra !== null && a.pra < 2.50, ''));
+      besS.push(makeCond('双眼翻转拍负片困难', a.flipperBinocularType === 'negative' || a.flipperBinocularType === 'both', ''));
+      besS.push(makeCond('NPC < 5cm', c.npc !== null && c.npc < 5, ''));
+      BES.sufficientConditions = besS;
+      var besNecMet = BES.necessaryConditions.every(function(c) { return c.met; });
+      var besSufCount = BES.sufficientConditions.filter(function(c) { return c.met; }).length;
+      BES.result = besNecMet && besSufCount >= 2;
+
+      var FVD = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var phoriaNormal = !farAbnormal && !nearAbnormal;
+      FVD.necessaryConditions.push(makeCond('远近隐斜均正常', phoriaNormal, ''));
+      FVD.necessaryConditions.push(makeCond('AC/A 正常', acStatus === 'normal', acValue !== null ? 'AC/A=' + acValue : ''));
+      var fvdS = [];
+      fvdS.push(makeCond('远BO/BI储备降低', (fnum(c.farBO.blur) !== null && fnum(c.farBO.blur) < 5) || (fnum(c.farBI.break) !== null && fnum(c.farBI.break) < 4), ''));
+      fvdS.push(makeCond('近BO/BI储备降低', (fnum(c.nearBO.blur) !== null && fnum(c.nearBO.blur) < 12) || (fnum(c.nearBI.break) !== null && fnum(c.nearBI.break) < 17), ''));
+      fvdS.push(makeCond('NRA < +2.00D 且 PRA < 2.50D', (a.nra !== null && a.nra < 2.00) && (a.pra !== null && a.pra < 2.50), ''));
+      fvdS.push(makeCond('双眼翻转拍双向困难', a.flipperBinocularType === 'both', ''));
+      FVD.sufficientConditions = fvdS;
+      var fvdNecMet = FVD.necessaryConditions.every(function(c) { return c.met; });
+      var fvdSufCount = FVD.sufficientConditions.filter(function(c) { return c.met; }).length;
+      FVD.result = fvdNecMet && fvdSufCount >= 2;
+
+      var PCI = { result: false, necessaryConditions: [], sufficientConditions: [] };
+      var ampSignificantlyLow = ampExpected !== null && lowerAmp < ampExpected - 2;
+      PCI.necessaryConditions.push(makeCond('近眼位高度外隐斜（类似集合不足）', nearPhoria !== null && nearPhoria < -6, nearPhoria !== null ? '近眼位=' + nearPhoria : ''));
+      PCI.necessaryConditions.push(makeCond('AMP 显著低于年龄预期', ampSignificantlyLow, '较低AMP=' + formatSignedDiopter(lowerAmp) + 'D'));
+      var pciS = [];
+      pciS.push(makeCond('BCC > +0.75D', a.bcc !== null && a.bcc > 0.75, a.bcc !== null ? 'BCC=' + formatSignedDiopter(a.bcc) : ''));
+      pciS.push(makeCond('AC/A 低', acStatus === 'low', acValue !== null ? 'AC/A=' + acValue : ''));
+      PCI.sufficientConditions = pciS;
+      var pciNecMet = PCI.necessaryConditions.every(function(c) { return c.met; });
+      var pciSufCount = PCI.sufficientConditions.filter(function(c) { return c.met; }).length;
+      PCI.result = pciNecMet && pciSufCount >= 1;
+      if (PCI.result) {
+        PCI.differentialNote = '附加+0.75D后NPC是否明显改善？若改善则为假性集合不足';
+        PCI.needsUserConfirm = true;
+      }
+
+      var diagnosedTypes = [];
+      var allTypes = [
+        { key: 'convergenceInsufficiency', name: '集合不足', data: CI },
+        { key: 'convergenceExcess', name: '集合过度', data: CE },
+        { key: 'divergenceInsufficiency', name: '散开不足', data: DI },
+        { key: 'divergenceExcess', name: '散开过度', data: DE },
+        { key: 'basicExophoria', name: '基本型外隐斜', data: BE },
+        { key: 'basicEsophoria', name: '基本型内隐斜', data: BES },
+        { key: 'fusionalVergenceDysfunction', name: '融像性聚散异常', data: FVD },
+        { key: 'pseudoConvergenceInsufficiency', name: '假性集合不足', data: PCI }
+      ];
+      allTypes.forEach(function(t) { if (t.data.result) diagnosedTypes.push(t.name); });
+
+      steps.push({ step: 8, title: '综合诊断', result: { diagnosedTypes: diagnosedTypes, summary: diagnosedTypes.length > 0 ? '诊断：' + diagnosedTypes.join('、') : '未诊断出集合功能异常' } });
+
+      gExamData.diagnosis.convergence = {
+        steps: steps,
+        types: {
+          convergenceInsufficiency: CI,
+          convergenceExcess: CE,
+          divergenceInsufficiency: DI,
+          divergenceExcess: DE,
+          basicExophoria: BE,
+          basicEsophoria: BES,
+          fusionalVergenceDysfunction: FVD,
+          pseudoConvergenceInsufficiency: PCI
+        }
+      };
+
+      return gExamData.diagnosis.convergence;
+    }
+
+    function renderConvergenceDiagnosis() {
+      var d = diagnoseConvergence(gExamData, gExamData.diagnosis.accommodation);
+      var container = document.getElementById('diagnosis-convergence');
+      if (!container) return;
+
+      var html = '';
+
+      var typeNames = {
+        convergenceInsufficiency: '集合不足',
+        convergenceExcess: '集合过度',
+        divergenceInsufficiency: '散开不足',
+        divergenceExcess: '散开过度',
+        basicExophoria: '基本型外隐斜',
+        basicEsophoria: '基本型内隐斜',
+        fusionalVergenceDysfunction: '融像性聚散异常',
+        pseudoConvergenceInsufficiency: '假性集合不足'
+      };
+
+      Object.keys(d.types).forEach(function(key) {
+        var t = d.types[key];
+        var name = typeNames[key] || key;
+        var statusClass, statusText;
+        if (t.result) { statusClass = 'result-positive'; statusText = '\u2717 诊断成立'; }
+        else { statusClass = 'result-negative'; statusText = '\u2713 未诊断'; }
+
+        html += '<div class="diagnosis-result">';
+        html += '<div class="result-title">' + name + '：<span class="' + statusClass + '">' + statusText + '</span></div>';
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0">必要条件</div>';
+        html += renderDiagnosisConditionList(t.necessaryConditions);
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0">充分不必要条件</div>';
+        html += renderDiagnosisConditionList(t.sufficientConditions);
+        if (t.differentialNote) {
+          html += '<div style="font-size:var(--font-xs);color:var(--info);margin-top:4px">\u2139 ' + t.differentialNote + '</div>';
+        }
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    var origBtnGoDiag = document.getElementById('btn-go-diagnosis');
+    if (origBtnGoDiag) {
+      origBtnGoDiag.removeEventListener('click', function() {});
+    }
+    document.getElementById('btn-go-diagnosis').onclick = function() {
+      renderAccommodationDiagnosis();
+      renderConvergenceDiagnosis();
+      renderBinocularDiagnosis();
+      showPage('page-diagnosis');
+    };
+
+    gExamData.diagnosis.binocular = {
+      worthFourDot: { value: '4', result: 'normal', description: '正常双眼单视' },
+      stereoAcuity: { value: null, result: 'normal', description: '' }
+    };
+
+    function diagnoseBinocular(data) {
+      var b = data.binocular;
+      var w4 = b.worthFourDot;
+      var worthResult = { value: w4, result: 'normal', description: '正常双眼单视' };
+      if (w4 === '5') { worthResult.result = 'critical'; worthResult.description = '复视（双眼视破坏）'; }
+      else if (w4 === '3') { worthResult.result = 'abnormal'; worthResult.description = '单眼抑制'; }
+      else if (w4 === '2') { worthResult.result = 'abnormal'; worthResult.description = '单眼抑制（另一眼）'; }
+
+      var sa = b.stereoAcuity;
+      var stereoResult = { value: sa, result: 'normal', description: '正常立体视' };
+      if (sa === 0) { stereoResult.result = 'critical'; stereoResult.description = '无立体视'; }
+      else if (sa !== null && sa < 100) { stereoResult.result = 'abnormal'; stereoResult.description = '立体视异常'; }
+
+      gExamData.diagnosis.binocular = { worthFourDot: worthResult, stereoAcuity: stereoResult };
+      return gExamData.diagnosis.binocular;
+    }
+
+    function renderBinocularDiagnosis() {
+      var d = diagnoseBinocular(gExamData);
+      var container = document.getElementById('diagnosis-binocular');
+      if (!container) return;
+
+      var html = '';
+      var w4 = d.worthFourDot;
+      var w4Class = w4.result === 'normal' ? '' : (w4.result === 'critical' ? 'binocular-critical' : 'binocular-abnormal');
+      html += '<div class="binocular-item">';
+      html += '<div><span class="bio-label">Worth-4 点</span><div class="bio-desc">' + w4.description + '</div></div>';
+      html += '<span class="' + w4Class + '">' + w4.value + '点</span>';
+      html += '</div>';
+
+      var sa = d.stereoAcuity;
+      var saClass = sa.result === 'normal' ? '' : (sa.result === 'critical' ? 'binocular-critical' : 'binocular-abnormal');
+      html += '<div class="binocular-item">';
+      html += '<div><span class="bio-label">立体视</span><div class="bio-desc">' + sa.description + '</div></div>';
+      html += '<span class="' + saClass + '">' + (sa.value !== null ? sa.value + '\u2033' : '--') + '</span>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    var _origRenderDiagnosisConditionList = renderDiagnosisConditionList;
+    renderDiagnosisConditionList = function(conditions, type) {
+      var html = '<ul class="condition-list" style="list-style:none;padding:0">';
+      conditions.forEach(function(c) {
+        var cls = type === 'necessary' ? 'necessary-condition' : 'sufficient-condition';
+        html += '<li class="' + cls + ' ' + (c.met ? 'condition-met' : 'condition-unmet') + '">' + (c.met ? '\u2713' : '\u2717') + ' ' + c.label;
+        if (c.detail) html += '（' + c.detail + '）';
+        html += '</li>';
+      });
+      html += '</ul>';
+      return html;
+    };
+
+    var _origRenderAccommodationDiagnosis = renderAccommodationDiagnosis;
+    renderAccommodationDiagnosis = function() {
+      var d = diagnoseAccommodation(gExamData);
+      var container = document.getElementById('diagnosis-accommodation');
+      if (!container) return;
+
+      var types = [
+        { key: 'insufficiency', name: '调节不足', data: d.insufficiency },
+        { key: 'excess', name: '调节过度', data: d.excess },
+        { key: 'illSustained', name: '调节不能持久', data: d.illSustained },
+        { key: 'infacility', name: '调节灵敏度异常', data: d.infacility }
+      ];
+
+      var html = '';
+      types.forEach(function(t) {
+        var data = t.data;
+        var statusClass, statusText;
+        if (data.result) { statusClass = 'result-positive'; statusText = '\u2717 诊断成立'; }
+        else if (data.needsUserConfirm) { statusClass = 'result-pending'; statusText = '\u26A0 需用户确认'; }
+        else { statusClass = 'result-negative'; statusText = '\u2713 未诊断'; }
+
+        html += '<div class="diagnosis-result">';
+        html += '<div class="result-title">' + t.name + '：<span class="' + statusClass + '">' + statusText + '</span></div>';
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0;color:var(--danger)">必要条件</div>';
+        html += renderDiagnosisConditionList(data.necessaryConditions, 'necessary');
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0;color:var(--info)">充分不必要条件</div>';
+        html += renderDiagnosisConditionList(data.sufficientConditions, 'sufficient');
+
+        if (data.differentialNote) {
+          html += '<div style="font-size:var(--font-xs);color:var(--info);margin-top:4px">\u2139 ' + data.differentialNote + '</div>';
+        }
+
+        if (data.needsUserConfirm) {
+          html += '<div class="confirm-panel" id="confirm-illsustained">';
+          html += '<p>调节幅度首测正常，但重复测量时是否逐渐下降？</p>';
+          html += '<div class="confirm-btns">';
+          html += '<button type="button" class="btn-primary" style="flex:1" onclick="confirmIllSustained(true)">是，逐渐下降</button>';
+          html += '<button type="button" class="btn-secondary" style="flex:1" onclick="confirmIllSustained(false)">否</button>';
+          html += '</div></div>';
+        }
+
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    };
+
+    var _origRenderConvergenceDiagnosis = renderConvergenceDiagnosis;
+    renderConvergenceDiagnosis = function() {
+      var d = diagnoseConvergence(gExamData, gExamData.diagnosis.accommodation);
+      var container = document.getElementById('diagnosis-convergence');
+      if (!container) return;
+
+      var html = '';
+
+      var typeNames = {
+        convergenceInsufficiency: '集合不足',
+        convergenceExcess: '集合过度',
+        divergenceInsufficiency: '散开不足',
+        divergenceExcess: '散开过度',
+        basicExophoria: '基本型外隐斜',
+        basicEsophoria: '基本型内隐斜',
+        fusionalVergenceDysfunction: '融像性聚散异常',
+        pseudoConvergenceInsufficiency: '假性集合不足'
+      };
+
+      Object.keys(d.types).forEach(function(key) {
+        var t = d.types[key];
+        var name = typeNames[key] || key;
+        var statusClass, statusText;
+        if (t.result) { statusClass = 'result-positive'; statusText = '\u2717 诊断成立'; }
+        else { statusClass = 'result-negative'; statusText = '\u2713 未诊断'; }
+
+        html += '<div class="diagnosis-result">';
+        html += '<div class="result-title">' + name + '：<span class="' + statusClass + '">' + statusText + '</span></div>';
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0;color:var(--danger)">必要条件</div>';
+        html += renderDiagnosisConditionList(t.necessaryConditions, 'necessary');
+        html += '<div style="font-size:var(--font-xs);font-weight:600;margin:4px 0;color:var(--info)">充分不必要条件</div>';
+        html += renderDiagnosisConditionList(t.sufficientConditions, 'sufficient');
+        if (t.differentialNote) {
+          html += '<div style="font-size:var(--font-xs);color:var(--info);margin-top:4px">\u2139 ' + t.differentialNote + '</div>';
+        }
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    };
+
+    var TREATMENT_MAP = {
+      insufficiency: ['①屈光矫正', '②视觉训练（推进训练/负镜阅读）', '③正镜近附加（成人或特殊情况）'],
+      excess: ['①屈光矫正', '②视觉训练（正镜阅读/调节放松）', '③散瞳药物（严重时）'],
+      illSustained: ['①屈光矫正', '②视觉训练（翻转拍+推进训练）', '③正镜近附加（成人）'],
+      infacility: ['①屈光矫正', '②视觉训练（翻转拍双向/远近字母表）'],
+      convergenceInsufficiency: ['①屈光全矫', '②视觉训练（聚散球/裂隙尺/集合卡）', '③棱镜（训练无效时）'],
+      convergenceExcess: ['①ADD处方', '②视觉训练', '③棱镜处方'],
+      divergenceInsufficiency: ['①屈光矫正（低矫）', '②首选棱镜', '③视觉训练'],
+      divergenceExcess: ['①屈光矫正（近视足矫/过矫）', '②首选视觉训练', '③棱镜'],
+      basicExophoria: ['①屈光矫正', '②首选视觉训练', '③棱镜'],
+      basicEsophoria: ['①屈光全矫', '②首选棱镜', '③视觉训练'],
+      fusionalVergenceDysfunction: ['①屈光矫正', '②视觉训练（融像训练）'],
+      pseudoConvergenceInsufficiency: ['①调节功能训练（核心）', '②集合训练（调节改善后）']
+    };
+
+    var LENS_RULE_MAP = {
+      convergenceExcess: '看远戴，看近可不戴',
+      excess: '看远戴，看近可不戴',
+      convergenceInsufficiency: '看远看近都戴',
+      insufficiency: '看远看近都戴',
+      divergenceInsufficiency: '低矫处方',
+      divergenceExcess: '近视足矫甚至过矫，远视欠矫',
+      basicEsophoria: '全矫处方',
+      basicExophoria: '最佳视力最高负镜度数'
+    };
+
+    var ACC_TYPE_LABELS = { insufficiency: '调节不足', excess: '调节过度', illSustained: '调节不能持久', infacility: '调节灵敏度异常' };
+    var CONV_TYPE_LABELS = { convergenceInsufficiency: '集合不足', convergenceExcess: '集合过度', divergenceInsufficiency: '散开不足', divergenceExcess: '散开过度', basicExophoria: '基本型外隐斜', basicEsophoria: '基本型内隐斜', fusionalVergenceDysfunction: '融像性聚散异常', pseudoConvergenceInsufficiency: '假性集合不足' };
+
+    function renderReportPage() {
+      var container = document.getElementById('report-content');
+      if (!container) return;
+
+      var abnResults = analyzeAbnormalities(gExamData);
+      var accDiag = gExamData.diagnosis.accommodation;
+      var convDiag = gExamData.diagnosis.convergence;
+      var binDiag = gExamData.diagnosis.binocular;
+
+      var html = '';
+
+      html += '<div class="card-section"><h3>异常项汇总</h3>';
+      var abnOnly = abnResults.filter(function(r) { return r.level !== 'normal'; });
+      if (abnOnly.length === 0) {
+        html += '<div style="color:var(--success)">所有检查项均在正常范围</div>';
+      } else {
+        abnOnly.forEach(function(item) {
+          html += '<div class="analysis-item"><div class="item-left"><span class="item-label">' + item.label + '</span><span class="item-detail">正常范围：' + item.normalRange + '</span></div><div style="display:flex;align-items:center"><span class="item-value">' + formatValue(item.value) + '</span>' + createBadgeHtml(item.level) + '</div></div>';
+        });
+      }
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>调节功能诊断</h3>';
+      var accDiagnosed = [];
+      Object.keys(accDiag).forEach(function(k) {
+        if (accDiag[k].result) accDiagnosed.push(ACC_TYPE_LABELS[k] || k);
+      });
+      if (accDiagnosed.length > 0) {
+        html += '<div style="color:var(--danger);font-weight:600;margin-bottom:var(--spacing-sm)">' + accDiagnosed.join('、') + '</div>';
+      } else {
+        html += '<div style="color:var(--success);font-weight:600">调节功能正常</div>';
+      }
+      Object.keys(accDiag).forEach(function(k) {
+        var t = accDiag[k];
+        var necMet = t.necessaryConditions.filter(function(c) { return c.met; }).length;
+        var sufMet = t.sufficientConditions.filter(function(c) { return c.met; }).length;
+        html += '<div style="font-size:var(--font-xs);color:var(--text-secondary)">' + (ACC_TYPE_LABELS[k] || k) + '：必要条件 ' + necMet + '/' + t.necessaryConditions.length + '，充分条件 ' + sufMet + '/' + t.sufficientConditions.length + '</div>';
+      });
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>集合功能诊断</h3>';
+      var convDiagnosed = [];
+      Object.keys(convDiag.types).forEach(function(k) {
+        if (convDiag.types[k].result) convDiagnosed.push(CONV_TYPE_LABELS[k] || k);
+      });
+      if (convDiagnosed.length > 0) {
+        html += '<div style="color:var(--danger);font-weight:600;margin-bottom:var(--spacing-sm)">' + convDiagnosed.join('、') + '</div>';
+        var step6 = convDiag.steps.find(function(s) { return s.step === 6; });
+        if (step6 && step6.result.rule) {
+          html += '<div style="font-size:var(--font-xs);color:var(--text-secondary)">' + step6.result.rule + '</div>';
+        }
+      } else {
+        html += '<div style="color:var(--success);font-weight:600">集合功能正常</div>';
+      }
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>三级视功能</h3>';
+      if (binDiag) {
+        var w4 = binDiag.worthFourDot;
+        var sa = binDiag.stereoAcuity;
+        html += '<div class="binocular-item"><div><span class="bio-label">Worth-4 点</span><div class="bio-desc">' + w4.description + '</div></div><span class="' + (w4.result === 'normal' ? '' : 'binocular-abnormal') + '">' + w4.value + '点</span></div>';
+        html += '<div class="binocular-item"><div><span class="bio-label">立体视</span><div class="bio-desc">' + sa.description + '</div></div><span class="' + (sa.result === 'normal' ? '' : 'binocular-abnormal') + '">' + (sa.value !== null ? sa.value + '\u2033' : '--') + '</span></div>';
+      }
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>原发与继发关系</h3>';
+      var step6Result = convDiag.steps.find(function(s) { return s.step === 6; });
+      if (step6Result && step6Result.result.primary && step6Result.result.primary !== '待定') {
+        html += '<div>原发：<strong>' + step6Result.result.primary + '</strong> → 继发：<strong>' + step6Result.result.secondary + '</strong></div>';
+        html += '<div style="font-size:var(--font-xs);color:var(--text-hint)">' + step6Result.result.rule + '</div>';
+      } else {
+        html += '<div style="color:var(--text-hint)">无明确原发/继发关系</div>';
+      }
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>融像储备评估</h3>';
+      var step3 = convDiag.steps.find(function(s) { return s.step === 3; });
+      if (step3 && step3.result.details && step3.result.details.length > 0) {
+        step3.result.details.forEach(function(d) {
+          html += '<div style="font-size:var(--font-sm);margin-bottom:4px">';
+          html += d.location + ' ' + d.criterion + ' 准则：' + (d.satisfied ? '<span style="color:var(--success)">满足</span>' : '<span style="color:var(--danger)">不满足</span>');
+          if (!d.satisfied && d.prismNeeded) html += '（建议棱镜：' + d.prismNeeded.toFixed(1) + '\u25B3）';
+          html += '</div>';
+        });
+      } else {
+        html += '<div style="color:var(--text-hint)">数据不足</div>';
+      }
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>综合结论</h3>';
+      var summaryParts = [];
+      if (accDiagnosed.length > 0) {
+        summaryParts.push('调节功能表现为' + accDiagnosed.join('、'));
+      } else {
+        summaryParts.push('调节功能正常');
+      }
+      if (convDiagnosed.length > 0) {
+        summaryParts.push('集合功能表现为' + convDiagnosed.join('、'));
+      } else {
+        summaryParts.push('集合功能正常');
+      }
+      if (step6Result && step6Result.result.primary && step6Result.result.primary !== '待定') {
+        summaryParts.push(step6Result.result.primary + '为原发，' + step6Result.result.secondary + '为继发');
+      }
+      if (binDiag && binDiag.worthFourDot.result === 'normal' && binDiag.stereoAcuity.result === 'normal') {
+        summaryParts.push('三级视功能正常');
+      } else {
+        summaryParts.push('三级视功能异常');
+      }
+      html += '<p style="font-size:var(--font-sm);line-height:1.8)">' + summaryParts.join('，') + '。</p>';
+      html += '</div>';
+
+      html += '<div class="card-section"><h3>处理方法建议</h3>';
+      var allDiagnosed = [];
+      Object.keys(accDiag).forEach(function(k) { if (accDiag[k].result) allDiagnosed.push(k); });
+      Object.keys(convDiag.types).forEach(function(k) { if (convDiag.types[k].result) allDiagnosed.push(k); });
+      if (allDiagnosed.length === 0) {
+        html += '<div style="color:var(--success)">视功能各项正常，暂无需特殊处理</div>';
+      } else {
+        allDiagnosed.forEach(function(key) {
+          var label = ACC_TYPE_LABELS[key] || CONV_TYPE_LABELS[key] || key;
+          var methods = TREATMENT_MAP[key] || ['暂无标准处理方案'];
+          html += '<div style="margin-bottom:var(--spacing-sm)"><div style="font-weight:600;font-size:var(--font-sm)">' + label + '</div>';
+          methods.forEach(function(m) {
+            html += '<div style="font-size:var(--font-xs);color:var(--text-secondary);padding-left:var(--spacing-sm)">' + m + '</div>';
+          });
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+
+      html += renderTrainingPlan(accDiag, convDiag);
+
+      html += '<div class="card-section"><h3>配镜原则</h3>';
+      var lensRules = [];
+      allDiagnosed.forEach(function(key) {
+        if (LENS_RULE_MAP[key]) lensRules.push({ type: ACC_TYPE_LABELS[key] || CONV_TYPE_LABELS[key] || key, rule: LENS_RULE_MAP[key] });
+      });
+      if (lensRules.length === 0) {
+        html += '<div style="color:var(--text-hint)">无特殊配镜原则要求</div>';
+      } else {
+        lensRules.forEach(function(r) {
+          html += '<div style="font-size:var(--font-sm);margin-bottom:4px"><strong>' + r.type + '</strong>：' + r.rule + '</div>';
+        });
+      }
+      html += '</div>';
+
+      html += '<div class="disclaimer">本工具为辅助诊断工具，诊断结果仅供参考，最终诊断需由专业视光师/医师确认。</div>';
+
+      container.innerHTML = html;
+    }
+
+    document.getElementById('btn-go-report').addEventListener('click', function() {
+      renderReportPage();
+      showPage('page-report');
+    });
+
+    document.getElementById('btn-report-print').addEventListener('click', function() {
+      window.print();
+    });
+
+    document.getElementById('btn-report-home').addEventListener('click', function() {
+      showPage('page-home');
+    });
+
+    var ACCOMMODATION_TRAINING = {
+      insufficiency: {
+        core: '提升调节幅度',
+        phase1: { title: '第一阶段', tools: '推进训练 + 负镜阅读', goal: '建立调节刺激能力' },
+        phase2: { title: '第二阶段', tools: '翻转拍 + 远近字母表', goal: '提升调节灵活度' },
+        endpoint: '单眼+2.50/-6.00D通过'
+      },
+      excess: {
+        core: '调节放松',
+        phase1: { title: '第一阶段', tools: '正镜阅读 + 镜片排序', goal: '体验并学习放松调节' },
+        phase2: { title: '第二阶段', tools: '翻转拍（侧重正镜）', goal: '提升正镜通过速度' },
+        endpoint: '单眼\u226511cpm，双眼\u22658cpm'
+      },
+      illSustained: {
+        core: '提升耐力',
+        phase1: { title: '第一阶段', tools: '翻转拍（侧重负镜）+ 推进训练', goal: '克服负镜困难与耐力下降' },
+        phase2: { title: '第二阶段', tools: '镜片排序进阶', goal: '精细化调节控制' },
+        endpoint: '灵敏度达标且持久'
+      },
+      infacility: {
+        core: '摆动训练',
+        phase1: { title: '第一阶段', tools: '翻转拍双向 + 远近字母表', goal: '加快调节切换速度' },
+        phase2: { title: '第二阶段', tools: '镜片阅读排序', goal: '巩固调节感知' },
+        endpoint: '单眼\u226512cpm，双眼\u22658-10cpm'
+      }
+    };
+
+    var CONVERGENCE_TRAINING = {
+      general: {
+        phase1: { title: '第一阶段：感知+幅度训练', tools: '聚散球 \u2192 红绿可变矢量图 \u2192 镜片阅读+翻转拍' },
+        phase2: { title: '第二阶段：跳跃性融像+灵敏度', tools: '裂隙尺 \u2192 偏心环卡 \u2192 救生圈卡' },
+        phase3: { title: '第三阶段：功能整合+迁移', tools: '棱镜翻转拍 \u2192 线珠旋转训练 \u2192 电脑视觉训练' }
+      },
+      convergenceInsufficiency: {
+        phase1Goal: '增加PFV至30\u25B2+调节训练',
+        phase2Goal: '增加跳跃融像+NFV',
+        phase3Goal: '聚散-调节-眼球运动整合',
+        endpoint: '镜片阅读通过+2.00/-6.00D，可变矢量图达到30\u25B2'
+      },
+      convergenceExcess: {
+        phase1Goal: '建立发散感知+调节训练',
+        phase2Goal: '跳跃融像（裂隙尺12号集合+6号散开）',
+        phase3Goal: '聚散转换训练',
+        endpoint: '调节灵敏度达到12cpm，可变矢量图散开达到15\u25B2'
+      },
+      divergenceExcess: {
+        phase1Goal: '增加远距PFV+调节训练',
+        phase2Goal: '改进远距PFV',
+        phase3Goal: '远距聚散灵敏度',
+        endpoint: '跳跃融像10次25\u25B2BO和15\u25B2BI/分钟'
+      },
+      basicExophoria: {
+        phase1Goal: '自主集合+PFV+调节',
+        phase2Goal: '中距离融像',
+        phase3Goal: '远距离PFV',
+        endpoint: '翻转拍配合聚散设备快速通过'
+      },
+      basicEsophoria: {
+        phase1Goal: '增进近距NFV+调节',
+        phase2Goal: '远距NFV',
+        phase3Goal: '聚散灵敏度',
+        endpoint: '翻转拍配合聚散设备快速通过'
+      }
+    };
+
+    var TRAINING_PRINCIPLES = [
+      '先单眼后双眼（单眼只有调节没有集合）',
+      '先练差的眼后练相对好的眼',
+      '紧张、放松训练以放松结束',
+      '远、近训练以远处结束',
+      '每次累计训练时间不超过30分钟，每日1-2次',
+      '先进行幅度训练，再进行灵活度训练',
+      '训练设备先用简单的再用难的'
+    ];
+
+    function renderToolTags(toolsStr) {
+      var tools = toolsStr.split(/[→\+]/).map(function(t) { return t.trim(); }).filter(Boolean);
+      var html = '<div class="training-tools">';
+      tools.forEach(function(t) { html += '<span class="tool-tag">' + t + '</span>'; });
+      html += '</div>';
+      return html;
+    }
+
+    function renderTrainingPlan(accDiag, convDiag) {
+      var html = '<div class="card-section"><h3>视觉训练方案</h3>';
+
+      var hasAccTraining = false;
+      Object.keys(accDiag).forEach(function(k) {
+        if (accDiag[k].result && ACCOMMODATION_TRAINING[k]) hasAccTraining = true;
+      });
+      var hasConvTraining = false;
+      Object.keys(convDiag.types).forEach(function(k) {
+        if (convDiag.types[k].result && CONVERGENCE_TRAINING[k]) hasConvTraining = true;
+      });
+
+      if (!hasAccTraining && !hasConvTraining) {
+        html += '<div style="color:var(--success)">视功能各项指标正常，暂无需视觉训练</div>';
+      } else {
+        if (hasAccTraining) {
+          html += '<div style="font-weight:600;font-size:var(--font-md);margin-bottom:var(--spacing-sm)">调节异常训练</div>';
+          Object.keys(accDiag).forEach(function(k) {
+            if (!accDiag[k].result || !ACCOMMODATION_TRAINING[k]) return;
+            var t = ACCOMMODATION_TRAINING[k];
+            html += '<div class="training-core">' + (ACC_TYPE_LABELS[k] || k) + ' — ' + t.core + '</div>';
+            html += '<div class="training-timeline">';
+            html += '<div class="training-phase"><div class="phase-title">' + t.phase1.title + '</div><div class="phase-goal">' + t.phase1.goal + '</div>' + renderToolTags(t.phase1.tools) + '</div>';
+            html += '<div class="training-phase"><div class="phase-title">' + t.phase2.title + '</div><div class="phase-goal">' + t.phase2.goal + '</div>' + renderToolTags(t.phase2.tools) + '</div>';
+            html += '</div>';
+            html += '<div class="training-endpoint">训练终点：' + t.endpoint + '</div>';
+          });
+        }
+
+        if (hasConvTraining) {
+          html += '<div style="font-weight:600;font-size:var(--font-md);margin:var(--spacing-md) 0 var(--spacing-sm)">集合异常训练（三阶段体系）</div>';
+          Object.keys(convDiag.types).forEach(function(k) {
+            if (!convDiag.types[k].result || !CONVERGENCE_TRAINING[k]) return;
+            var ct = CONVERGENCE_TRAINING[k];
+            var g = CONVERGENCE_TRAINING.general;
+            html += '<div class="training-core">' + (CONV_TYPE_LABELS[k] || k) + '</div>';
+            html += '<div class="training-timeline">';
+            html += '<div class="training-phase"><div class="phase-title">' + g.phase1.title + '</div><div class="phase-goal">' + ct.phase1Goal + '</div>' + renderToolTags(g.phase1.tools) + '</div>';
+            html += '<div class="training-phase"><div class="phase-title">' + g.phase2.title + '</div><div class="phase-goal">' + ct.phase2Goal + '</div>' + renderToolTags(g.phase2.tools) + '</div>';
+            html += '<div class="training-phase"><div class="phase-title">' + g.phase3.title + '</div><div class="phase-goal">' + ct.phase3Goal + '</div>' + renderToolTags(g.phase3.tools) + '</div>';
+            html += '</div>';
+            html += '<div class="training-endpoint">训练终点：' + ct.endpoint + '</div>';
+          });
+        }
+
+        html += '<div style="font-weight:600;font-size:var(--font-md);margin:var(--spacing-md) 0 var(--spacing-sm)">训练通用原则</div>';
+        html += '<div class="training-principles"><ol>';
+        TRAINING_PRINCIPLES.forEach(function(p) { html += '<li>' + p + '</li>'; });
+        html += '</ol></div>';
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    setTimeout(function() {
+      var splash = document.getElementById('splash');
+      if (splash) splash.classList.add('hide');
+      setTimeout(function() { if (splash && splash.parentNode) splash.parentNode.removeChild(splash); }, 300);
+    }, 500);
+
+    var TERM_TIPS = {
+      'NRA': '负相对调节，双眼同时放松调节的能力，正常值 +2.00~+2.50D',
+      'PRA': '正相对调节，双眼同时刺激调节的能力，正常值 \u22652.50D',
+      'BCC': '调节反应（MEM动态检影），衡量调节滞后/超前，正常值 +0.25~+0.75D',
+      'AMP': '调节幅度，眼睛最大调节能力，期望值 = 15 - 0.25\u00d7年龄',
+      'AC/A': '调节性集合与调节的比值，计算法正常5~7\u25B3/D，梯度法正常3~5\u25B3/D',
+      'NPC': '集合近点，双眼最大集合能力的近点距离，正常5~7cm',
+      'Sheard': 'Sheard准则：融像储备应\u22652倍隐斜量，适用于外隐斜',
+      '1:1': '1:1准则：BI恢复值应\u2265内隐斜量，适用于内隐斜'
+    };
+
+    document.addEventListener('click', function(e) {
+      var tip = e.target.closest('.term-tip');
+      var existing = document.querySelector('.term-tooltip');
+      if (existing) { existing.parentNode.removeChild(existing); }
+      if (tip) {
+        var text = TERM_TIPS[tip.textContent.trim()] || '';
+        if (text) {
+          var el = document.createElement('div');
+          el.className = 'term-tooltip';
+          el.textContent = text;
+          document.body.appendChild(el);
+          var rect = tip.getBoundingClientRect();
+          el.style.left = Math.min(rect.left, window.innerWidth - 290) + 'px';
+          el.style.top = (rect.bottom + 6) + 'px';
+          setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 3000);
+        }
+      }
+    });
+
+    var debounceTimer = null;
+    function debouncedUpdateBadges() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() { updateInputBadges(); }, 300);
+    }
+
+    document.querySelectorAll('#page-input [data-bind]').forEach(function(el) {
+      el.removeEventListener('input', function() {});
+      el.addEventListener('input', debouncedUpdateBadges);
+    });
+
+    var origAgeInput = document.getElementById('inp-age');
+    if (origAgeInput) {
+      origAgeInput.addEventListener('input', function() {
+        updateAmpHint();
+        debouncedUpdateBadges();
+      });
+    }
+
+    function saveExamToHistory() {
+      var key = 'oculus_exam_' + Date.now();
+      var record = {
+        timestamp: Date.now(),
+        basic: JSON.parse(JSON.stringify(gExamData.basic)),
+        accommodation: JSON.parse(JSON.stringify(gExamData.accommodation)),
+        convergence: JSON.parse(JSON.stringify(gExamData.convergence)),
+        binocular: JSON.parse(JSON.stringify(gExamData.binocular)),
+        diagnosis: JSON.parse(JSON.stringify(gExamData.diagnosis))
+      };
+      try {
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf('oculus_exam_') === 0) keys.push(k);
+        }
+        keys.sort();
+        while (keys.length >= 50) {
+          localStorage.removeItem(keys.shift());
+        }
+        localStorage.setItem(key, JSON.stringify(record));
+      } catch (e) {}
+    }
+
+    function getExamHistory() {
+      var records = [];
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf('oculus_exam_') === 0) {
+            var data = JSON.parse(localStorage.getItem(k));
+            if (data) records.push(data);
+          }
+        }
+      } catch (e) {}
+      records.sort(function(a, b) { return b.timestamp - a.timestamp; });
+      return records;
+    }
+
+    function getDiagnosisSummary(diagnosis) {
+      var parts = [];
+      if (diagnosis && diagnosis.accommodation) {
+        Object.keys(diagnosis.accommodation).forEach(function(k) {
+          if (diagnosis.accommodation[k] && diagnosis.accommodation[k].result) parts.push(ACC_TYPE_LABELS[k] || k);
+        });
+      }
+      if (diagnosis && diagnosis.convergence && diagnosis.convergence.types) {
+        Object.keys(diagnosis.convergence.types).forEach(function(k) {
+          if (diagnosis.convergence.types[k] && diagnosis.convergence.types[k].result) parts.push(CONV_TYPE_LABELS[k] || k);
+        });
+      }
+      return parts.length > 0 ? parts.join(' + ') : '正常';
+    }
+
+    function renderRecentCard() {
+      var records = getExamHistory();
+      var container = document.getElementById('recent-exam-card');
+      if (!container) return;
+      if (records.length === 0) { container.innerHTML = ''; return; }
+      var r = records[0];
+      var date = new Date(r.timestamp);
+      var dateStr = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+      var summary = getDiagnosisSummary(r.diagnosis);
+      container.innerHTML = '<div class="recent-card"><div class="rc-title">最近检查</div><div class="rc-detail">' + dateStr + ' | 年龄' + (r.basic.age || '--') + ' | ' + summary + '</div></div>';
+    }
+
+    function renderHistoryList() {
+      var records = getExamHistory();
+      var container = document.getElementById('history-list');
+      if (!container) return;
+      if (records.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-hint);text-align:center;padding:var(--spacing-lg)">暂无历史记录</div>';
+        return;
+      }
+      var html = '';
+      records.forEach(function(r, idx) {
+        var date = new Date(r.timestamp);
+        var dateStr = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + ' ' + date.getHours() + ':' + String(date.getMinutes()).padStart(2, '0');
+        var summary = getDiagnosisSummary(r.diagnosis);
+        html += '<div class="history-item" data-idx="' + idx + '">';
+        html += '<div><div class="hi-date">' + dateStr + '</div><div class="hi-summary">年龄' + (r.basic.age || '--') + ' | ' + summary + '</div></div>';
+        html += '<button class="hi-delete" data-del-idx="' + idx + '">\u2717</button>';
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    document.getElementById('btn-new-exam').addEventListener('click', function() {
+      gExamData.basic = { age: null, pd: null, nearDistance: 0.4 };
+      gExamData.accommodation = { nra: null, pra: null, bcc: null, ampRight: null, ampLeft: null, sensitivityRight: null, sensitivityLeft: null, sensitivityBinocular: null, flipperRightType: 'none', flipperLeftType: 'none', flipperBinocularType: 'none' };
+      gExamData.convergence = { farPhoria: null, nearPhoria: null, acMethod: 'calculated', acValue: null, npc: null, farBI: { blur: null, break: null, recovery: null }, farBO: { blur: null, break: null, recovery: null }, nearBI: { blur: null, break: null, recovery: null }, nearBO: { blur: null, break: null, recovery: null } };
+      gExamData.binocular = { worthFourDot: '4', stereoAcuity: null };
+      showPage('page-input');
+    });
+
+    document.getElementById('btn-view-history').addEventListener('click', function() {
+      renderHistoryList();
+      showPage('page-history');
+    });
+
+    document.getElementById('btn-history-back').addEventListener('click', function() {
+      showPage('page-home');
+    });
+
+    document.getElementById('history-list').addEventListener('click', function(e) {
+      var delBtn = e.target.closest('.hi-delete');
+      if (delBtn) {
+        e.stopPropagation();
+        var idx = parseInt(delBtn.getAttribute('data-del-idx'));
+        var records = getExamHistory();
+        if (records[idx]) {
+          var key = 'oculus_exam_' + records[idx].timestamp;
+          localStorage.removeItem(key);
+          renderHistoryList();
+        }
+        return;
+      }
+      var item = e.target.closest('.history-item');
+      if (item) {
+        var idx = parseInt(item.getAttribute('data-idx'));
+        var records = getExamHistory();
+        if (records[idx]) {
+          var r = records[idx];
+          gExamData.basic = r.basic;
+          gExamData.accommodation = r.accommodation;
+          gExamData.convergence = r.convergence;
+          gExamData.binocular = r.binocular;
+          if (r.diagnosis) gExamData.diagnosis = r.diagnosis;
+          renderAccommodationDiagnosis();
+          renderConvergenceDiagnosis();
+          renderBinocularDiagnosis();
+          renderReportPage();
+          showPage('page-report');
+        }
+      }
+    });
+
+    var origGoReport = document.getElementById('btn-go-report');
+    if (origGoReport) {
+      origGoReport.onclick = function() {
+        saveExamToHistory();
+        renderReportPage();
+        showPage('page-report');
+      };
+    }
+
+    renderRecentCard();
+
+
+    var origBtnGoDiag = document.getElementById('btn-go-diagnosis');
+    if (origBtnGoDiag) {
+      origBtnGoDiag.onclick = function() {
+        renderAccommodationDiagnosis();
+        renderConvergenceDiagnosis();
+        renderBinocularDiagnosis();
+        showPage('page-diagnosis');
+        document.querySelectorAll('.result-positive').forEach(function(el) {
+          el.closest('.diagnosis-result').style.scrollMarginTop = '80px';
+        });
+      };
+    }
+
+    var pickerOverlay = document.getElementById('picker-overlay');
+    var pickerBody = document.getElementById('picker-body');
+    var pickerList = document.getElementById('picker-list');
+    var pickerTitle = document.getElementById('picker-title');
+    var pickerUnitLabel = document.getElementById('picker-unit-label');
+    var pickerCurrentInput = null;
+    var pickerStep = 1;
+    var pickerMin = -50;
+    var pickerMax = 50;
+    var pickerValues = [];
+    var pickerSelectedIndex = 0;
+    var pickerStartY = 0;
+    var pickerCurrentY = 0;
+    var pickerIsDragging = false;
+    var pickerPadCount = 0;
+
+    function getPickerStep(unit) {
+      unit = (unit || '').trim();
+      if (unit === 'D' || unit.indexOf('/D') >= 0) return 0.25;
+      if (unit === 'cpm') return 0.5;
+      return 1;
+    }
+
+    var pickerForceSign = '';
+
+    function formatPickerDisplay(value, forceSign) {
+      if (value === null || value === undefined) return '';
+      var num = Number(value);
+      if (isNaN(num)) return String(value);
+      var abs = Math.abs(num);
+      var dec = forceSign === 'signed' || forceSign === 'positive' || forceSign === 'negative'
+        ? (Number.isInteger(abs) ? abs.toString() : abs.toFixed(2).replace(/\.?0+$/, ''))
+        : (Number.isInteger(abs) ? abs.toString() : abs.toFixed(2).replace(/\.?0+$/, ''));
+      if (forceSign === 'positive') return '+' + dec;
+      if (forceSign === 'negative') return '-' + dec;
+      if (forceSign === 'signed') {
+        if (num > 0) return '+' + dec;
+        if (num < 0) return '-' + dec;
+        return '0';
+      }
+      return dec;
+    }
+
+    function openPicker(input, label, unit) {
+      pickerCurrentInput = input;
+      pickerForceSign = input.getAttribute('data-force-sign') || '';
+      pickerTitle.textContent = label || '选择';
+      pickerUnitLabel.textContent = unit ? '单位：' + unit : '';
+
+      pickerStep = getPickerStep(unit);
+      var htmlMax = input.hasAttribute('max') ? parseFloat(input.getAttribute('max')) : 50;
+      var currentVal = input.value !== '' ? parseFloat(input.value) : null;
+
+      if (unit === 'D' || unit.indexOf('/D') >= 0) {
+        if (pickerForceSign === 'signed') {
+          pickerMin = -10; pickerMax = 10;
+        } else {
+          pickerMin = 0; pickerMax = 20;
+        }
+      } else if (unit === 'cpm') {
+        pickerMin = 0; pickerMax = 30;
+      } else if (unit === 'cm') {
+        pickerMin = 0; pickerMax = 30;
+      } else if (pickerForceSign === 'signed') {
+        pickerMin = -40; pickerMax = 40;
+      } else {
+        pickerMin = 0;
+        pickerMax = htmlMax !== 50 ? htmlMax : 40;
+      }
+
+      pickerValues = [];
+      for (var v = pickerMin; v <= pickerMax + pickerStep * 0.01; v += pickerStep) {
+        var rounded = Math.round(v * 100) / 100;
+        pickerValues.push(rounded);
+      }
+
+      pickerSelectedIndex = 0;
+      if (currentVal !== null && !isNaN(currentVal)) {
+        var closest = 0;
+        var closestDist = Infinity;
+        for (var i = 0; i < pickerValues.length; i++) {
+          var dist = Math.abs(pickerValues[i] - currentVal);
+          if (dist < closestDist) { closestDist = dist; closest = i; }
+        }
+        pickerSelectedIndex = closest;
+      } else if (pickerForceSign === 'signed') {
+        var zeroIdx = pickerValues.indexOf(0);
+        if (zeroIdx >= 0) pickerSelectedIndex = zeroIdx;
+      }
+
+      renderPickerItems();
+      pickerPadCount = Math.ceil(110 / 44);
+      var itemH = 44;
+      var centerY = 110 - 22;
+      var targetY = -((pickerSelectedIndex + pickerPadCount) * itemH) + centerY;
+      pickerList.style.transform = 'translateY(' + targetY + 'px)';
+      pickerCurrentY = targetY;
+
+      pickerOverlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    }
+
+    function renderPickerItems() {
+      var html = '';
+      var padCount = Math.ceil(110 / 44);
+      for (var p = 0; p < padCount; p++) {
+        html += '<div class="picker-item"></div>';
+      }
+      for (var i = 0; i < pickerValues.length; i++) {
+        html += '<div class="picker-item">' + formatPickerDisplay(pickerValues[i], pickerForceSign) + '</div>';
+      }
+      for (var p = 0; p < padCount; p++) {
+        html += '<div class="picker-item"></div>';
+      }
+      pickerList.innerHTML = html;
+    }
+
+    function closePicker() {
+      pickerOverlay.classList.remove('show');
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      pickerCurrentInput = null;
+    }
+
+    function confirmPicker() {
+      if (pickerCurrentInput && pickerValues.length > 0) {
+        var val = pickerValues[pickerSelectedIndex];
+        pickerCurrentInput.value = val;
+        pickerCurrentInput.dispatchEvent(new Event('input', { bubbles: true }));
+        pickerCurrentInput.dispatchEvent(new Event('change', { bubbles: true }));
+        pickerCurrentInput.dispatchEvent(new Event('picker-updated', { bubbles: false }));
+      }
+      closePicker();
+    }
+
+    function snapPicker(y) {
+      var itemH = 44;
+      var centerY = 110 - 22;
+      var globalIdx = Math.round((centerY - y) / itemH);
+      var dataIdx = globalIdx - pickerPadCount;
+      dataIdx = Math.max(0, Math.min(pickerValues.length - 1, dataIdx));
+      pickerSelectedIndex = dataIdx;
+      var targetY = -((dataIdx + pickerPadCount) * itemH) + centerY;
+      pickerList.style.transition = 'transform 0.15s ease';
+      pickerList.style.transform = 'translateY(' + targetY + 'px)';
+      pickerCurrentY = targetY;
+      setTimeout(function() { pickerList.style.transition = ''; }, 160);
+    }
+
+    document.getElementById('picker-cancel').addEventListener('click', closePicker);
+    document.getElementById('picker-confirm').addEventListener('click', confirmPicker);
+    var pickerJustDragged = false;
+
+    pickerOverlay.addEventListener('click', function(e) {
+      if (pickerIsDragging || pickerJustDragged) return;
+      if (e.target === pickerOverlay) closePicker();
+    });
+
+    pickerBody.addEventListener('touchstart', function(e) {
+      pickerIsDragging = true;
+      pickerJustDragged = false;
+      pickerStartY = e.touches[0].clientY - pickerCurrentY;
+      pickerList.style.transition = '';
+    }, { passive: true });
+
+    pickerOverlay.addEventListener('touchmove', function(e) {
+      if (!pickerIsDragging) return;
+      e.preventDefault();
+      pickerCurrentY = e.touches[0].clientY - pickerStartY;
+      pickerList.style.transform = 'translateY(' + pickerCurrentY + 'px)';
+    }, { passive: false });
+
+    pickerOverlay.addEventListener('touchend', function() {
+      if (!pickerIsDragging) return;
+      pickerIsDragging = false;
+      pickerJustDragged = true;
+      setTimeout(function() { pickerJustDragged = false; }, 300);
+      snapPicker(pickerCurrentY);
+    });
+
+    pickerOverlay.addEventListener('touchcancel', function() {
+      if (!pickerIsDragging) return;
+      pickerIsDragging = false;
+      pickerJustDragged = true;
+      setTimeout(function() { pickerJustDragged = false; }, 300);
+      snapPicker(pickerCurrentY);
+    });
+
+    pickerBody.addEventListener('mousedown', function(e) {
+      pickerIsDragging = true;
+      pickerStartY = e.clientY - pickerCurrentY;
+      pickerList.style.transition = '';
+      e.preventDefault();
+    });
+
+    function pickerMouseMove(e) {
+      if (!pickerIsDragging) return;
+      pickerCurrentY = e.clientY - pickerStartY;
+      pickerList.style.transform = 'translateY(' + pickerCurrentY + 'px)';
+    }
+
+    function pickerMouseUp() {
+      if (!pickerIsDragging) return;
+      pickerIsDragging = false;
+      snapPicker(pickerCurrentY);
+    }
+
+    document.addEventListener('mousemove', pickerMouseMove);
+    document.addEventListener('mouseup', pickerMouseUp);
+
+    pickerOverlay.addEventListener('mousedown', function(e) {
+      if (e.target === pickerOverlay) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
+    function setupPickerInput(inp) {
+      inp.setAttribute('readonly', 'readonly');
+      inp.style.cursor = 'pointer';
+      inp.style.background = '#fff';
+      inp.classList.add('picker-input');
+
+      var wrapper = inp.closest('.input-wrapper');
+      var displaySpan = document.createElement('span');
+      displaySpan.className = 'picker-display-text';
+      wrapper.appendChild(displaySpan);
+
+      function updateDisplay() {
+        var val = inp.value !== '' ? parseFloat(inp.value) : null;
+        var forceSign = inp.getAttribute('data-force-sign') || '';
+        if (val !== null && !isNaN(val)) {
+          displaySpan.textContent = formatPickerDisplay(val, forceSign);
+        } else {
+          displaySpan.textContent = '';
+        }
+      }
+      updateDisplay();
+
+      inp.addEventListener('picker-updated', updateDisplay);
+
+      inp.addEventListener('click', function(e) {
+        e.preventDefault();
+        var unitEl = wrapper ? wrapper.querySelector('.unit') : null;
+        var unit = unitEl ? unitEl.textContent.trim() : '';
+        var formGroup = wrapper ? wrapper.closest('.form-group') : null;
+        var labelEl = formGroup ? formGroup.querySelector('label') : null;
+        var label = labelEl ? labelEl.textContent.trim() : '';
+        openPicker(inp, label, unit);
+      });
+
+      inp.addEventListener('focus', function(e) {
+        if (inp.getAttribute('readonly')) {
+          e.preventDefault();
+          inp.blur();
+          inp.click();
+        }
+      });
+    }
+
+    function initPickerInputs() {
+      var keepNormal = ['inp-age', 'inp-pd', 'inp-nearDist'];
+      var noPickerBinds = [
+        'convergence.farBI.blur', 'convergence.farBI.break', 'convergence.farBI.recovery',
+        'convergence.farBO.blur', 'convergence.farBO.break', 'convergence.farBO.recovery',
+        'convergence.nearBI.blur', 'convergence.nearBI.break', 'convergence.nearBI.recovery',
+        'convergence.nearBO.blur', 'convergence.nearBO.break', 'convergence.nearBO.recovery'
+      ];
+
+      document.querySelectorAll('#page-input .input-wrapper input[type="number"]').forEach(function(inp) {
+        if (keepNormal.indexOf(inp.id) >= 0) return;
+        if (inp.getAttribute('data-bind') === 'binocular.stereoAcuity') return;
+        if (noPickerBinds.indexOf(inp.getAttribute('data-bind')) >= 0) return;
+        setupPickerInput(inp);
+      });
+
+      document.querySelectorAll('#gradient-inputs input[type="number"]').forEach(function(inp) {
+        setupPickerInput(inp);
+      });
+    }
+
+    initPickerInputs();
+
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.option-btn');
+      if (!btn) return;
+      var group = btn.closest('.option-group');
+      if (!group) return;
+      group.querySelectorAll('.option-btn').forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      var bindPath = group.getAttribute('data-option-bind');
+      var val = btn.getAttribute('data-value');
+      if (bindPath) {
+        setNestedValue(gExamData, bindPath, val);
+        debouncedUpdateBadges();
+      }
+      if (bindPath === 'binocular.worthFourDot') {
+        updateWorthHint(val);
+      }
+    });
+
+    var WORTH_MAP = {
+      '4': { text: '正常双眼单视', cls: 'normal' },
+      '3': { text: '右眼抑制', cls: 'abnormal' },
+      '2': { text: '左眼抑制', cls: 'abnormal' },
+      '5': { text: '复视', cls: 'abnormal' }
+    };
+
+    function updateWorthHint(val) {
+      var el = document.getElementById('worth-hint');
+      if (!el) return;
+      var info = WORTH_MAP[val];
+      if (info) {
+        el.textContent = info.text;
+        el.className = 'worth-hint ' + info.cls;
+      }
+    }
+  </script>
+</body>
 </html>
